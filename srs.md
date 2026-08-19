@@ -322,6 +322,7 @@ Các trường hợp sau chưa có đủ quy tắc để xác định cách xử
     
 # Bước 10 None productional prequiment (Phi chức năng)
 | Mã | Nhóm yêu cầu | Yêu cầu phi chức năng |
+|---|---|---|
 | NFR01 | Scalability | Hệ thống phải có khả năng phục vụ số lượng lớn khách hàng và tài xế khi nhu cầu tăng. |
 | NFR02 | Scalability | Các thành phần của hệ thống phải có khả năng mở rộng độc lập khi tải tăng. |
 | NFR03 | Availability / Stability | Hệ thống phải hoạt động ổn định trong các thời điểm có nhu cầu đặt xe cao. |
@@ -339,7 +340,7 @@ Các trường hợp sau chưa có đủ quy tắc để xác định cách xử
 | NFR15 | Extensibility | Hệ thống phải cho phép bổ sung các nhà cung cấp hoặc kênh thông báo mới mà không phải thay đổi toàn bộ hệ thống. |
 | NFR16 | Maintainability | Hệ thống phải có kiến trúc linh hoạt để có thể thay đổi một số thành phần kỹ thuật mà hạn chế ảnh hưởng đến các thành phần khác. |
 # Bước 11 Vẽ Usecase (UC)
-![Use Case CAB System](usecase-cab-system.png)
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/0d0f2418-3ee1-4209-bfca-7f003673c617" />
 # Bước 12 Đặc tả Usecase
 ## UC01. Đăng ký tài khoản khách hàng
 
@@ -665,64 +666,73 @@ Các báo cáo gồm:
 * Tỷ lệ chuyến hủy.
 * Hiệu quả hoạt động của tài xế.
   
-# bƯỚC 13 Bước 13. Acceptance Criteria (AC) - Tiêu chí chấp nhận : nhờ đây mà dự án mới được nghiệm thu
+# Bước 13. Acceptance Criteria (AC) – Tiêu chí chấp nhận
 
-| Mã   | Chức năng                    | Tiêu chí chấp nhận                                                                                                                                   
-| AC01 | Đăng ký tài khoản khách hàng | Khách hàng nhập đầy đủ thông tin hợp lệ thì hệ thống tạo tài khoản thành công và thông báo kết quả.                                                  |
-| AC02 | Đăng nhập                    | Người dùng nhập đúng thông tin tài khoản thì đăng nhập thành công; nếu thông tin không đúng thì hệ thống thông báo lỗi.                              |
-| AC03 | Cập nhật thông tin cá nhân   | Khách hàng hoặc tài xế có thể chỉnh sửa thông tin hợp lệ và hệ thống lưu thông tin mới thành công.                                                   |
-| AC04 | Tạo yêu cầu đặt xe           | Khách hàng nhập điểm đón, điểm đến, chọn loại xe và gửi yêu cầu thì hệ thống tạo chuyến và ghi nhận trạng thái đang tìm tài xế.                      |
-| AC05 | Tìm tài xế sẵn sàng          | Hệ thống chỉ đưa vào danh sách tìm kiếm các tài xế đang ở trạng thái sẵn sàng nhận chuyến.                                                           |
-| AC06 | Lọc tài xế phù hợp           | Hệ thống lọc tài xế dựa trên loại xe/dịch vụ, vị trí và các tiêu chí vận hành đã được xác định.                                                      |
-| AC07 | Gửi yêu cầu chuyến           | Tài xế được lựa chọn nhận được thông báo về yêu cầu chuyến mới.                                                                                      |
-| AC08 | Tài xế chấp nhận chuyến      | Khi tài xế chấp nhận, hệ thống ghi nhận phản hồi, gán tài xế cho chuyến và thông báo cho khách hàng.                                                 |
-| AC09 | Tài xế từ chối chuyến        | Khi tài xế từ chối, hệ thống không hủy yêu cầu của khách hàng mà tiếp tục tìm tài xế khác.                                                           |
-| AC10 | Tài xế không phản hồi        | Nếu tài xế không phản hồi trong thời gian quy định, hệ thống tiếp tục tìm tài xế khác. Thời gian cụ thể là TBD.                                      |
-| AC11 | Không tìm được tài xế        | Khi không còn tài xế phù hợp, hệ thống thông báo rõ cho khách hàng rằng không tìm được tài xế.                                                       |
-| AC12 | Hiển thị thông tin tài xế    | Sau khi tài xế nhận chuyến, khách hàng xem được thông tin tài xế và thời gian dự kiến tài xế đến.                                                    |
-| AC13 | Cập nhật trạng thái chuyến   | Tài xế có thể cập nhật lần lượt các trạng thái: đã đến điểm đón, đã đón khách, đang di chuyển và hoàn thành.                                         |
-| AC14 | Theo dõi chuyến đi           | Khách hàng có thể xem trạng thái hiện tại của chuyến trong quá trình thực hiện.                                                                      |
-| AC15 | Cập nhật vị trí tài xế       | Hệ thống ghi nhận vị trí tài xế để hỗ trợ việc tìm tài xế và ước tính thời gian đến.                                                                 |
-| AC16 | Hoàn thành chuyến            | Khi tài xế xác nhận hoàn thành, hệ thống cập nhật trạng thái chuyến thành hoàn thành và thực hiện tính cước.                                         |
-| AC17 | Tính cước                    | Sau khi chuyến hoàn thành, hệ thống xác định được số tiền khách hàng phải trả dựa trên loại dịch vụ và thông tin chuyến đi. Công thức cụ thể là TBD. |
-| AC18 | Thanh toán tiền mặt          | Khi khách hàng chọn tiền mặt, hệ thống ghi nhận phương thức và kết quả thanh toán của chuyến.                                                        |
-| AC19 | Thanh toán điện tử           | Khi khách hàng chọn thanh toán điện tử, hệ thống gửi giao dịch đến nhà cung cấp thanh toán bên ngoài và nhận kết quả trả về.                         |
-| AC20 | Thanh toán thành công        | Khi nhà cung cấp thanh toán trả kết quả thành công, hệ thống ghi nhận giao dịch thành công và thông báo cho khách hàng.                              |
-| AC21 | Thanh toán thất bại          | Khi giao dịch thất bại, hệ thống ghi nhận trạng thái thất bại, thông báo cho khách hàng và cho phép xử lý lại theo chính sách doanh nghiệp.          |
-| AC22 | Lịch sử chuyến đi            | Khách hàng có thể xem lại danh sách các chuyến đã thực hiện và thông tin của từng chuyến.                                                            |
-| AC23 | Đánh giá tài xế              | Chỉ sau khi chuyến hoàn thành, khách hàng mới có thể gửi đánh giá tài xế và hệ thống lưu đánh giá thành công.                                        |
-| AC24 | Thông báo đặt xe             | Khách hàng nhận được thông báo khi yêu cầu đặt xe được tiếp nhận.                                                                                    |
-| AC25 | Thông báo tài xế nhận chuyến | Khách hàng nhận được thông báo khi có tài xế chấp nhận chuyến.                                                                                       |
-| AC26 | Thông báo tài xế đến         | Khách hàng nhận được thông báo khi tài xế cập nhật trạng thái đã đến điểm đón.                                                                       |
-| AC27 | Thông báo hoàn thành chuyến  | Hệ thống gửi thông báo khi chuyến đi hoàn thành.                                                                                                     |
-| AC28 | Quản lý vận hành             | Nhân viên vận hành có thể xem và quản lý khách hàng, tài xế, phương tiện, chuyến đi theo quyền được cấp.                                             |
-| AC29 | Xử lý chuyến gặp sự cố       | Nhân viên vận hành có thể xem thông tin chuyến gặp lỗi và thực hiện các thao tác hỗ trợ được phân quyền.                                             |
-| AC30 | Tra cứu giao dịch            | Nhân viên vận hành có thể tìm kiếm và xem lịch sử giao dịch.                                                                                         |
-| AC31 | Phân quyền                   | Người dùng không có quyền phù hợp không thể thực hiện các thao tác quản trị nhạy cảm.                                                                |
-| AC32 | Báo cáo số chuyến            | Hệ thống có thể tổng hợp và hiển thị số lượng chuyến theo dữ liệu được lựa chọn.                                                                     |
-| AC33 | Báo cáo doanh thu            | Hệ thống có thể tổng hợp và hiển thị thông tin doanh thu.                                                                                            |
-| AC34 | Báo cáo tỷ lệ chuyến         | Hệ thống có thể cung cấp tỷ lệ chuyến hoàn thành và tỷ lệ chuyến hủy.                                                                                |
-| AC35 | Báo cáo hiệu quả tài xế      | Hệ thống có thể cung cấp dữ liệu phục vụ đánh giá hiệu quả hoạt động của tài xế.                                                                     |
-| AC36 | Lưu vết thao tác             | Các thao tác quan trọng được hệ thống ghi lại để phục vụ kiểm tra khi có sự cố.                                                                      |
-| AC37 | Lỗi thanh toán               | Khi chức năng thanh toán gặp lỗi, các chức năng đặt xe chính vẫn có thể tiếp tục hoạt động.                                                          |
-| AC38 | Lỗi thông báo                | Khi chức năng thông báo gặp lỗi, hệ thống đặt xe không bị ngừng toàn bộ.                                                                             |
-# Bước 14 Requirement Traceability Matrix (RTM) – Ma trận truy xuất nguồn gốc yêu cầu : ma trận RTM truy xuất hết mọi tt trong việc thiết kế , xây dựng các bộ kiểm thử
-1. Ma trận RTM
-Business Goal	Business Requirement	FR / NFR liên quan	Use Case	Acceptance Criteria
-BG01 – Mở rộng quy mô phục vụ	BR15 – Đảm bảo khả năng mở rộng	NFR01, NFR02	Không áp dụng trực tiếp	TBD – Cần xác định số người dùng và tải tối đa
-BG02 – Giảm thời gian tìm tài xế	BR02 – Tìm tài xế tự động	FR23, FR24, FR25, FR26, FR27, FR28	UC04 – Tìm và phân công tài xế	AC05, AC06, AC07
-BG03 – Giảm thao tác thủ công trong phân công tài xế	BR03 – Tự động tìm tài xế thay thế	FR29, FR30, FR31, FR32	UC04, UC05	AC08, AC09, AC10, AC11
-BG04 – Tăng khả năng theo dõi chuyến đi	BR04 – Theo dõi chuyến đi	FR07, FR08, FR20, FR21	UC06 – Thực hiện chuyến đi	AC12, AC13, AC14, AC15, AC16
-BG03 – Giảm thao tác thủ công	BR05 – Quản lý hoạt động tài xế	FR15, FR16, FR17, FR18, FR19, FR20, FR22	UC05, UC06	AC03, AC07, AC08, AC13
-BG02 – Giảm thời gian tìm tài xế	BR06 – Quản lý vị trí tài xế	FR21, FR23, FR26, FR27	UC04, UC06	AC06, AC15
-BG05 – Tập trung hóa quản lý thanh toán	BR07 – Tính cước chuyến đi	FR33	UC07 – Thanh toán chuyến đi	AC17
-BG05 – Tập trung hóa quản lý thanh toán	BR08 – Hỗ trợ thanh toán	FR13, FR14, FR34, FR35, FR36, FR37, FR38	UC07	AC18, AC19, AC20, AC21
-BG05, BG09	BR09 – Bảo vệ dữ liệu thanh toán	NFR11	UC07	AC19, AC20
-BG04 – Tăng khả năng theo dõi chuyến đi	BR10 – Thông báo chuyến đi	FR22, FR39, FR40, FR41, FR42, FR43, FR44	UC03, UC04, UC05, UC06, UC07	AC24, AC25, AC26, AC27
-BG03 – Nâng cao hiệu quả vận hành	BR11 – Quản lý vận hành	FR45, FR46, FR47, FR48, FR49, FR50, FR51	UC09 – Quản lý vận hành	AC28, AC29, AC30
-BG08 – Hỗ trợ ra quyết định	BR12 – Báo cáo và thống kê	FR52, FR53, FR54, FR55	UC10 – Xem báo cáo và thống kê	AC32, AC33, AC34, AC35
-BG09 – Bảo vệ dữ liệu và kiểm soát truy cập	BR13 – Xác thực và phân quyền	FR02, FR16, FR56, FR57, FR58; NFR07, NFR08	UC02, UC09	AC02, AC31
-BG09 – Bảo vệ dữ liệu và kiểm soát truy cập	BR14 – Lưu vết hoạt động	FR59; NFR12	UC09	AC36
-BG06 – Duy trì hệ thống ổn định khi tải cao	BR16 – Đảm bảo tính ổn định	NFR03, NFR04, NFR05	Không áp dụng trực tiếp	AC37, AC38
-BG07 – Giảm rủi ro khi triển khai tính năng mới	BR17 – Hỗ trợ mở rộng trong tương lai	NFR06, NFR16	Không áp dụng trực tiếp	TBD – Cần tiêu chí triển khai cụ thể
-BG10 – Sẵn sàng mở rộng dịch vụ trong tương lai	BR17 – Hỗ trợ mở rộng trong tương lai	NFR13, NFR14, NFR15, NFR16	Không áp dụng trực tiếp	TBD – Cần tiêu chí mở rộng cụ thể
+Acceptance Criteria là các tiêu chí dùng để xác định chức năng có đáp ứng yêu cầu và đủ điều kiện nghiệm thu hay không.
+
+| Mã | Chức năng | Tiêu chí chấp nhận |
+|---|---|---|
+| AC01 | Đăng ký tài khoản khách hàng | Khách hàng nhập đầy đủ thông tin hợp lệ thì hệ thống tạo tài khoản thành công và thông báo kết quả. |
+| AC02 | Đăng nhập | Người dùng nhập đúng thông tin tài khoản thì đăng nhập thành công; nếu thông tin không đúng thì hệ thống thông báo lỗi. |
+| AC03 | Cập nhật thông tin cá nhân | Khách hàng hoặc tài xế có thể chỉnh sửa thông tin hợp lệ và hệ thống lưu thông tin mới thành công. |
+| AC04 | Tạo yêu cầu đặt xe | Khách hàng nhập điểm đón, điểm đến, chọn loại xe và gửi yêu cầu thì hệ thống tạo chuyến và ghi nhận trạng thái đang tìm tài xế. |
+| AC05 | Tìm tài xế sẵn sàng | Hệ thống chỉ đưa vào danh sách tìm kiếm các tài xế đang ở trạng thái sẵn sàng nhận chuyến. |
+| AC06 | Lọc tài xế phù hợp | Hệ thống lọc tài xế dựa trên loại xe/dịch vụ, vị trí và các tiêu chí vận hành đã được xác định. |
+| AC07 | Gửi yêu cầu chuyến | Tài xế được lựa chọn nhận được thông báo về yêu cầu chuyến mới. |
+| AC08 | Tài xế chấp nhận chuyến | Khi tài xế chấp nhận, hệ thống ghi nhận phản hồi, gán tài xế cho chuyến và thông báo cho khách hàng. |
+| AC09 | Tài xế từ chối chuyến | Khi tài xế từ chối, hệ thống không hủy yêu cầu của khách hàng mà tiếp tục tìm tài xế khác. |
+| AC10 | Tài xế không phản hồi | Nếu tài xế không phản hồi trong thời gian quy định, hệ thống tiếp tục tìm tài xế khác. Thời gian cụ thể là TBD. |
+| AC11 | Không tìm được tài xế | Khi không còn tài xế phù hợp, hệ thống thông báo rõ cho khách hàng rằng không tìm được tài xế. |
+| AC12 | Hiển thị thông tin tài xế | Sau khi tài xế nhận chuyến, khách hàng xem được thông tin tài xế và thời gian dự kiến tài xế đến. |
+| AC13 | Cập nhật trạng thái chuyến | Tài xế có thể cập nhật lần lượt các trạng thái: đã đến điểm đón, đã đón khách, đang di chuyển và hoàn thành. |
+| AC14 | Theo dõi chuyến đi | Khách hàng có thể xem trạng thái hiện tại của chuyến trong quá trình thực hiện. |
+| AC15 | Cập nhật vị trí tài xế | Hệ thống ghi nhận vị trí tài xế để hỗ trợ việc tìm tài xế và ước tính thời gian đến. |
+| AC16 | Hoàn thành chuyến | Khi tài xế xác nhận hoàn thành, hệ thống cập nhật trạng thái chuyến thành hoàn thành và thực hiện tính cước. |
+| AC17 | Tính cước | Sau khi chuyến hoàn thành, hệ thống xác định được số tiền khách hàng phải trả dựa trên loại dịch vụ và thông tin chuyến đi. Công thức cụ thể là TBD. |
+| AC18 | Thanh toán tiền mặt | Khi khách hàng chọn tiền mặt, hệ thống ghi nhận phương thức và kết quả thanh toán của chuyến. |
+| AC19 | Thanh toán điện tử | Khi khách hàng chọn thanh toán điện tử, hệ thống gửi giao dịch đến nhà cung cấp thanh toán bên ngoài và nhận kết quả trả về. |
+| AC20 | Thanh toán thành công | Khi nhà cung cấp thanh toán trả kết quả thành công, hệ thống ghi nhận giao dịch thành công và thông báo cho khách hàng. |
+| AC21 | Thanh toán thất bại | Khi giao dịch thất bại, hệ thống ghi nhận trạng thái thất bại, thông báo cho khách hàng và cho phép xử lý lại theo chính sách doanh nghiệp. |
+| AC22 | Lịch sử chuyến đi | Khách hàng có thể xem lại danh sách các chuyến đã thực hiện và thông tin của từng chuyến. |
+| AC23 | Đánh giá tài xế | Chỉ sau khi chuyến hoàn thành, khách hàng mới có thể gửi đánh giá tài xế và hệ thống lưu đánh giá thành công. |
+| AC24 | Thông báo đặt xe | Khách hàng nhận được thông báo khi yêu cầu đặt xe được tiếp nhận. |
+| AC25 | Thông báo tài xế nhận chuyến | Khách hàng nhận được thông báo khi có tài xế chấp nhận chuyến. |
+| AC26 | Thông báo tài xế đến | Khách hàng nhận được thông báo khi tài xế cập nhật trạng thái đã đến điểm đón. |
+| AC27 | Thông báo hoàn thành chuyến | Hệ thống gửi thông báo khi chuyến đi hoàn thành. |
+| AC28 | Quản lý vận hành | Nhân viên vận hành có thể xem và quản lý khách hàng, tài xế, phương tiện, chuyến đi theo quyền được cấp. |
+| AC29 | Xử lý chuyến gặp sự cố | Nhân viên vận hành có thể xem thông tin chuyến gặp lỗi và thực hiện các thao tác hỗ trợ được phân quyền. |
+| AC30 | Tra cứu giao dịch | Nhân viên vận hành có thể tìm kiếm và xem lịch sử giao dịch. |
+| AC31 | Phân quyền | Người dùng không có quyền phù hợp không thể thực hiện các thao tác quản trị nhạy cảm. |
+| AC32 | Báo cáo số chuyến | Hệ thống có thể tổng hợp và hiển thị số lượng chuyến theo dữ liệu được lựa chọn. |
+| AC33 | Báo cáo doanh thu | Hệ thống có thể tổng hợp và hiển thị thông tin doanh thu. |
+| AC34 | Báo cáo tỷ lệ chuyến | Hệ thống có thể cung cấp tỷ lệ chuyến hoàn thành và tỷ lệ chuyến hủy. |
+| AC35 | Báo cáo hiệu quả tài xế | Hệ thống có thể cung cấp dữ liệu phục vụ đánh giá hiệu quả hoạt động của tài xế. |
+| AC36 | Lưu vết thao tác | Các thao tác quan trọng được hệ thống ghi lại để phục vụ kiểm tra khi có sự cố. |
+| AC37 | Lỗi thanh toán | Khi chức năng thanh toán gặp lỗi, các chức năng đặt xe chính vẫn có thể tiếp tục hoạt động. |
+| AC38 | Lỗi thông báo | Khi chức năng thông báo gặp lỗi, hệ thống đặt xe không bị ngừng toàn bộ. |
+
+# Bước 14. Requirement Traceability Matrix (RTM) – Ma trận truy xuất nguồn gốc yêu cầu
+
+Ma trận RTM giúp truy xuất mối liên hệ giữa mục tiêu kinh doanh, yêu cầu nghiệp vụ, yêu cầu chức năng/phi chức năng, Use Case và tiêu chí chấp nhận. RTM hỗ trợ quá trình thiết kế, phát triển và xây dựng các bộ kiểm thử.
+
+## 14.1. Ma trận RTM
+
+| Business Goal | Business Requirement | FR / NFR liên quan | Use Case | Acceptance Criteria |
+|---|---|---|---|---|
+| BG01 – Mở rộng quy mô phục vụ | BR15 – Đảm bảo khả năng mở rộng | NFR01, NFR02 | Không áp dụng trực tiếp | TBD – Cần xác định số người dùng và tải tối đa |
+| BG02 – Giảm thời gian tìm tài xế | BR02 – Tìm tài xế tự động | FR23, FR24, FR25, FR26, FR27, FR28 | UC04 – Tìm và phân công tài xế | AC05, AC06, AC07 |
+| BG03 – Giảm thao tác thủ công trong phân công tài xế | BR03 – Tự động tìm tài xế thay thế | FR29, FR30, FR31, FR32 | UC04, UC05 | AC08, AC09, AC10, AC11 |
+| BG04 – Tăng khả năng theo dõi chuyến đi | BR04 – Theo dõi chuyến đi | FR07, FR08, FR20, FR21 | UC06 – Thực hiện chuyến đi | AC12, AC13, AC14, AC15, AC16 |
+| BG03 – Giảm thao tác thủ công | BR05 – Quản lý hoạt động tài xế | FR15, FR16, FR17, FR18, FR19, FR20, FR22 | UC05, UC06 | AC03, AC07, AC08, AC13 |
+| BG02 – Giảm thời gian tìm tài xế | BR06 – Quản lý vị trí tài xế | FR21, FR23, FR26, FR27 | UC04, UC06 | AC06, AC15 |
+| BG05 – Tập trung hóa quản lý thanh toán | BR07 – Tính cước chuyến đi | FR33 | UC07 – Thanh toán chuyến đi | AC17 |
+| BG05 – Tập trung hóa quản lý thanh toán | BR08 – Hỗ trợ thanh toán | FR13, FR14, FR34, FR35, FR36, FR37, FR38 | UC07 – Thanh toán chuyến đi | AC18, AC19, AC20, AC21 |
+| BG05, BG09 | BR09 – Bảo vệ dữ liệu thanh toán | NFR11 | UC07 – Thanh toán chuyến đi | AC19, AC20 |
+| BG04 – Tăng khả năng theo dõi chuyến đi | BR10 – Thông báo chuyến đi | FR22, FR39, FR40, FR41, FR42, FR43, FR44 | UC03, UC04, UC05, UC06, UC07 | AC24, AC25, AC26, AC27 |
+| BG03 – Nâng cao hiệu quả vận hành | BR11 – Quản lý vận hành | FR45, FR46, FR47, FR48, FR49, FR50, FR51 | UC09 – Quản lý vận hành | AC28, AC29, AC30 |
+| BG08 – Hỗ trợ ra quyết định | BR12 – Báo cáo và thống kê | FR52, FR53, FR54, FR55 | UC10 – Xem báo cáo và thống kê | AC32, AC33, AC34, AC35 |
+| BG09 – Bảo vệ dữ liệu và kiểm soát truy cập | BR13 – Xác thực và phân quyền | FR02, FR16, FR56, FR57, FR58; NFR07, NFR08 | UC02, UC09 | AC02, AC31 |
+| BG09 – Bảo vệ dữ liệu và kiểm soát truy cập | BR14 – Lưu vết hoạt động | FR59; NFR12 | UC09 – Quản lý vận hành | AC36 |
+| BG06 – Duy trì hệ thống ổn định khi tải cao | BR16 – Đảm bảo tính ổn định | NFR03, NFR04, NFR05 | Không áp dụng trực tiếp | AC37, AC38 |
+| BG07 – Giảm rủi ro khi triển khai tính năng mới | BR17 – Hỗ trợ mở rộng trong tương lai | NFR06, NFR16 | Không áp dụng trực tiếp | TBD – Cần tiêu chí triển khai cụ thể |
+| BG10 – Sẵn sàng mở rộng dịch vụ trong tương lai | BR17 – Hỗ trợ mở rộng trong tương lai | NFR13, NFR14, NFR15, NFR16 | Không áp dụng trực tiếp | TBD – Cần tiêu chí mở rộng cụ thể |
