@@ -861,7 +861,8 @@ Khách hàng → Thanh toán chuyến ← Nhà cung cấp thanh toán
 Nhà cung cấp thanh toán chỉ tham gia khi khách hàng lựa chọn phương thức thanh toán điện tử.
 
 ---
-
+Mô hình usecase
+<img width="1710" height="1244" alt="image" src="https://github.com/user-attachments/assets/3e462b76-7d0d-49ce-b5f9-ca2f213af814" />
 # BƯỚC 12. ĐẶC TẢ USE CASE CHÍNH
 
 ## UC04. Đặt xe
