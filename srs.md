@@ -765,84 +765,100 @@ Các giá trị sau chưa được đề bài xác định:
 
 ---
 
-# BƯỚC 11. USE CASE
+# BƯỚC 11. USE CASE DIAGRAM
 
-## 11.1. Actor
+## 11.1. Xác định Actor
 
-### Actor nghiệp vụ
+CAB System có 5 actor chính:
 
-* Khách hàng
-* Tài xế
-* Nhân viên vận hành
-* Người có quyền xem báo cáo
+| STT | Actor | Vai trò |
+|---|---|---|
+| 1 | Khách hàng | Đăng ký, đăng nhập, cập nhật thông tin cá nhân, đặt xe, theo dõi chuyến, hủy chuyến, xem lịch sử chuyến, thanh toán và đánh giá tài xế. |
+| 2 | Tài xế | Đăng nhập, cập nhật hồ sơ, cập nhật phương tiện, cập nhật trạng thái sẵn sàng, phản hồi yêu cầu chuyến và cập nhật trạng thái chuyến đi. |
+| 3 | Nhân viên vận hành | Đăng nhập, quản lý khách hàng, tài xế, phương tiện, theo dõi chuyến, kiểm tra trạng thái tài xế, xử lý chuyến gặp sự cố, tra cứu giao dịch và tạo tài khoản tài xế. |
+| 4 | Quản lý | Xem báo cáo hoạt động của hệ thống. |
+| 5 | Nhà cung cấp thanh toán | Tham gia xử lý giao dịch thanh toán điện tử của khách hàng. |
 
-### External Actor
+> CAB System là hệ thống đang được mô hình hóa nên không được xem là actor của chính hệ thống.
 
-* Nhà cung cấp thanh toán bên ngoài
-
-> CAB System không phải actor của chính CAB System.
+---
 
 ## 11.2. Danh sách Use Case
 
-### Khách hàng
+### A. Use Case của Khách hàng
 
-| Mã   | Use Case                   |
-| ---- | -------------------------- |
-| UC01 | Đăng ký tài khoản          |
-| UC02 | Đăng nhập                  |
-| UC03 | Cập nhật thông tin cá nhân |
-| UC04 | Đặt xe                     |
-| UC05 | Theo dõi chuyến đi         |
-| UC06 | Hủy chuyến                 |
-| UC07 | Xem lịch sử chuyến         |
-| UC08 | Thanh toán chuyến          |
-| UC09 | Đánh giá tài xế            |
+| Mã | Use Case | Mô tả ngắn |
+|---|---|---|
+| UC01 | Đăng ký | Cho phép khách hàng tạo tài khoản sử dụng CAB System. |
+| UC02 | Đăng nhập | Cho phép khách hàng xác thực tài khoản trước khi sử dụng các chức năng yêu cầu đăng nhập. |
+| UC03 | Cập nhật thông tin cá nhân | Cho phép khách hàng chỉnh sửa thông tin cá nhân. |
+| UC04 | Đặt xe | Cho phép khách hàng nhập thông tin chuyến và gửi yêu cầu đặt xe. |
+| UC05 | Theo dõi chuyến đi | Cho phép khách hàng theo dõi trạng thái hiện tại của chuyến. |
+| UC06 | Hủy chuyến | Cho phép khách hàng yêu cầu hủy chuyến theo chính sách của doanh nghiệp. |
+| UC07 | Xem lịch sử chuyến đi | Cho phép khách hàng xem lại các chuyến đã thực hiện. |
+| UC08 | Đánh giá tài xế | Cho phép khách hàng đánh giá tài xế sau khi chuyến hoàn thành. |
+| UC09 | Thanh toán chuyến | Cho phép khách hàng thanh toán chi phí chuyến đi. |
 
-### Tài xế
+---
 
-| Mã   | Use Case                     |
-| ---- | ---------------------------- |
-| UC10 | Đăng ký tài khoản tài xế     |
-| UC11 | Cập nhật hồ sơ               |
-| UC12 | Cập nhật phương tiện         |
-| UC13 | Cập nhật trạng thái sẵn sàng |
-| UC14 | Phản hồi yêu cầu chuyến      |
-| UC15 | Cập nhật trạng thái chuyến   |
+### B. Use Case của Tài xế
 
-### Nhân viên vận hành
+| Mã | Use Case | Mô tả ngắn |
+|---|---|---|
+| UC10 | Đăng nhập | Cho phép tài xế xác thực tài khoản để sử dụng hệ thống. |
+| UC11 | Cập nhật hồ sơ | Cho phép tài xế chỉnh sửa thông tin cá nhân. |
+| UC12 | Cập nhật phương tiện | Cho phép tài xế cập nhật thông tin phương tiện đang sử dụng. |
+| UC13 | Cập nhật trạng thái tài xế | Cho phép tài xế chuyển trạng thái sẵn sàng hoặc không sẵn sàng nhận chuyến. |
+| UC14 | Phản hồi yêu cầu chuyến | Cho phép tài xế chấp nhận hoặc từ chối yêu cầu chuyến được gửi đến. |
+| UC15 | Cập nhật trạng thái chuyến đi | Cho phép tài xế cập nhật trạng thái trong quá trình thực hiện chuyến. |
 
-| Mã   | Use Case                   |
-| ---- | -------------------------- |
-| UC16 | Tạo tài khoản tài xế       |
-| UC17 | Quản lý khách hàng         |
-| UC18 | Quản lý tài xế             |
-| UC19 | Quản lý phương tiện        |
-| UC20 | Theo dõi chuyến            |
-| UC21 | Kiểm tra trạng thái tài xế |
-| UC22 | Xử lý chuyến gặp sự cố     |
-| UC23 | Tra cứu giao dịch          |
+> UC02 và UC10 đều là chức năng đăng nhập. Khi triển khai hệ thống thực tế có thể dùng chung một Use Case “Đăng nhập” cho nhiều actor.
 
-### Báo cáo
+---
 
-| Mã   | Use Case    |
-| ---- | ----------- |
-| UC24 | Xem báo cáo |
+### C. Use Case của Nhân viên vận hành
 
-## 11.3. Quan hệ Use Case chính
+| Mã | Use Case | Mô tả ngắn |
+|---|---|---|
+| UC16 | Đăng nhập | Cho phép nhân viên vận hành xác thực tài khoản. |
+| UC17 | Quản lý khách hàng | Cho phép nhân viên vận hành xem và xử lý thông tin khách hàng theo quyền được cấp. |
+| UC18 | Quản lý tài xế | Cho phép nhân viên vận hành quản lý thông tin tài xế. |
+| UC19 | Quản lý phương tiện | Cho phép nhân viên vận hành quản lý thông tin phương tiện. |
+| UC20 | Theo dõi chuyến | Cho phép nhân viên vận hành theo dõi các chuyến đang diễn ra. |
+| UC21 | Kiểm tra trạng thái tài xế | Cho phép nhân viên vận hành xem trạng thái hoạt động của tài xế. |
+| UC22 | Xử lý chuyến gặp sự cố | Cho phép nhân viên vận hành hỗ trợ xử lý các chuyến phát sinh vấn đề. |
+| UC23 | Tra cứu giao dịch | Cho phép nhân viên vận hành tìm kiếm và xem lịch sử giao dịch. |
+| UC24 | Tạo tài khoản tài xế | Cho phép nhân viên vận hành tạo tài khoản cho tài xế. |
 
-```text
-Đặt xe
-   |
-   | <<include>>
-   v
-Tìm và phân công tài xế
-```
+---
 
-Tài xế tham gia thông qua Use Case:
+### D. Use Case của Quản lý
 
-```text
-Phản hồi yêu cầu chuyến
-```
+| Mã | Use Case | Mô tả ngắn |
+|---|---|---|
+| UC25 | Xem báo cáo | Cho phép quản lý xem các báo cáo hoạt động của CAB System. |
+
+Các báo cáo có thể bao gồm:
+
+- Số lượng chuyến.
+- Doanh thu.
+- Tỷ lệ chuyến hoàn thành.
+- Tỷ lệ chuyến hủy.
+- Hiệu quả hoạt động của tài xế.
+
+---
+
+### E. Use Case liên quan đến Nhà cung cấp thanh toán
+
+Nhà cung cấp thanh toán bên ngoài tham gia vào:
+
+**UC09 – Thanh toán chuyến**
+
+Quan hệ:
+
+Khách hàng → Thanh toán chuyến ← Nhà cung cấp thanh toán
+
+Nhà cung cấp thanh toán chỉ tham gia khi khách hàng lựa chọn phương thức thanh toán điện tử.
 
 ---
 
