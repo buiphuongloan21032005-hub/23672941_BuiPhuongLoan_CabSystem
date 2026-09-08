@@ -756,7 +756,7 @@ Trip 1 --- 0..1 Rating
 | Khách hàng | Đăng ký, đăng nhập, đặt xe, theo dõi, hủy, thanh toán, đánh giá |
 | Tài xế | Đăng ký, đăng nhập, cập nhật hồ sơ, phương tiện, trạng thái, phản hồi và thực hiện chuyến |
 | Nhân viên vận hành | Đăng nhập, tạo tài khoản tài xế, quản lý và giám sát hoạt động |
-| Quản lý / Người có quyền xem báo cáo | Xem báo cáo |
+| Quản lý  | Xem báo cáo |
 | Nhà cung cấp thanh toán | Xử lý thanh toán điện tử |
 
 > CAB System không phải actor của chính nó.
@@ -822,6 +822,9 @@ Trip 1 --- 0..1 Rating
 - “Tìm và phân công tài xế” được mô tả trong `UC04 – Đặt xe` và nhóm FR Dispatch để sơ đồ tổng thể không quá rối.
 
 ---
+## Mô hình Usecase Diagram
+<img width="1710" height="1244" alt="image" src="https://github.com/user-attachments/assets/673eaa42-a64d-46b0-89b7-8c73257041cc" />
+--
 
 # BƯỚC 12. ĐẶC TẢ USE CASE CHÍNH
 
