@@ -66,8 +66,6 @@ Công ty ABC cần xây dựng CAB System nhằm:
 - Chưa quản lý tập trung thông tin thanh toán.
 - Khả năng mở rộng còn hạn chế.
 
-> Yêu cầu ban đầu không mô tả chi tiết kiến trúc của hệ thống cũ, vì vậy không kết luận hệ thống cũ sử dụng kiến trúc cụ thể nào.
-
 ### 3. Mục tiêu của hệ thống mới là gì?
 
 - Tự động hóa tìm và phân công tài xế.
@@ -103,8 +101,6 @@ Công ty ABC cần xây dựng CAB System nhằm:
 | 4 | Nhân viên vận hành | Quản lý và giám sát hoạt động vận hành |
 | 5 | Nhà cung cấp thanh toán bên ngoài | Xử lý giao dịch thanh toán điện tử |
 | 6 | Business Analyst | Thu thập, phân tích và làm rõ yêu cầu |
-
-> Business Analyst là stakeholder của dự án nhưng không phải actor nghiệp vụ của CAB System.
 
 ## 2.2. Power – Interest
 
