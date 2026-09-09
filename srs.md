@@ -193,7 +193,6 @@ Công ty ABC cần xây dựng CAB System nhằm:
 | BR11 | Bảo mật và kiểm soát | Xác thực, phân quyền, bảo vệ dữ liệu và lưu vết |
 | BR12 | Khả năng phát triển | Hỗ trợ mở rộng và thay đổi các thành phần trong tương lai |
 | BR13 | Đánh giá tài xế | Khách hàng đánh giá tài xế sau khi chuyến hoàn thành |
-
 ---
 
 # BƯỚC 6. BUSINESS PROCESS – QUY TRÌNH NGHIỆP VỤ
