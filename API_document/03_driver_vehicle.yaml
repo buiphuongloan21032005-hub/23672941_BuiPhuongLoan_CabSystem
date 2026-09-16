@@ -1,0 +1,183 @@
+openapi: 3.0.0
+info:
+  title: CAB System - Driver and Vehicle API
+  description: |
+    API hỗ trợ tài xế cập nhật hồ sơ, phương tiện và trạng thái sẵn sàng.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local server
+
+paths:
+  /drivers/me:
+    get:
+      summary: Get current driver profile
+      operationId: getDriverProfile
+      tags:
+        - Drivers
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Driver profile found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+
+    put:
+      summary: Update driver profile
+      operationId: updateDriverProfile
+      tags:
+        - Drivers
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Updated driver information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDriverRequest'
+      responses:
+        '200':
+          description: Driver profile updated successfully
+        '400':
+          description: Invalid input
+
+  /drivers/me/vehicle:
+    get:
+      summary: Get driver vehicle
+      operationId: getDriverVehicle
+      tags:
+        - Vehicles
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Vehicle found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+
+    put:
+      summary: Create or update driver vehicle
+      operationId: updateDriverVehicle
+      tags:
+        - Vehicles
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Vehicle information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleRequest'
+      responses:
+        '200':
+          description: Vehicle updated successfully
+        '400':
+          description: Invalid input
+
+  /drivers/me/availability:
+    put:
+      summary: Update driver availability status
+      operationId: updateDriverAvailability
+      tags:
+        - Drivers
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Driver availability status
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - availability_status
+              properties:
+                availability_status:
+                  type: string
+                  enum:
+                    - AVAILABLE
+                    - UNAVAILABLE
+      responses:
+        '200':
+          description: Availability status updated successfully
+        '400':
+          description: Invalid status
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Driver:
+      type: object
+      properties:
+        driver_id:
+          type: integer
+          format: int64
+        user_id:
+          type: integer
+          format: int64
+        availability_status:
+          type: string
+          enum:
+            - AVAILABLE
+            - UNAVAILABLE
+
+    UpdateDriverRequest:
+      type: object
+      properties:
+        full_name:
+          type: string
+        phone:
+          type: string
+
+    VehicleRequest:
+      type: object
+      required:
+        - vehicle_type
+        - license_plate
+        - vehicle_name
+      properties:
+        vehicle_type:
+          type: string
+          enum:
+            - MOTORBIKE
+            - CAR
+        license_plate:
+          type: string
+        vehicle_name:
+          type: string
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - INACTIVE
+
+    Vehicle:
+      type: object
+      properties:
+        vehicle_id:
+          type: integer
+          format: int64
+        driver_id:
+          type: integer
+          format: int64
+        vehicle_type:
+          type: string
+        license_plate:
+          type: string
+        vehicle_name:
+          type: string
+        status:
+          type: string

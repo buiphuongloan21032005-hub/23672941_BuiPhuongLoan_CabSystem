@@ -1,0 +1,104 @@
+openapi: 3.0.0
+info:
+  title: CAB System - Customer API
+  description: |
+    API hỗ trợ khách hàng xem và cập nhật thông tin cá nhân.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local server
+
+paths:
+  /customers/me:
+    get:
+      summary: Get current customer profile
+      operationId: getCustomerProfile
+      tags:
+        - Customers
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Customer profile found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update customer profile
+      operationId: updateCustomerProfile
+      tags:
+        - Customers
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Updated customer information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCustomerRequest'
+      responses:
+        '200':
+          description: Customer profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UpdateCustomerRequest:
+      type: object
+      properties:
+        full_name:
+          type: string
+        phone:
+          type: string
+
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+        full_name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum:
+            - CUSTOMER
+        status:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        error_code:
+          type: string
+        message:
+          type: string

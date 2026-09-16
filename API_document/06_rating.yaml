@@ -1,0 +1,86 @@
+openapi: 3.0.0
+info:
+  title: CAB System - Rating API
+  description: |
+    API cho phép khách hàng đánh giá tài xế sau khi chuyến đi hoàn thành.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local server
+
+paths:
+  /trips/{tripId}/rating:
+    post:
+      summary: Rate driver after completed trip
+      operationId: createRating
+      tags:
+        - Ratings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          description: ID of the completed trip
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Rating information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingRequest'
+      responses:
+        '201':
+          description: Rating saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+        '400':
+          description: Trip is not completed or rating is invalid
+        '409':
+          description: Trip has already been rated
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RatingRequest:
+      type: object
+      required:
+        - score
+      properties:
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+
+    Rating:
+      type: object
+      properties:
+        rating_id:
+          type: integer
+          format: int64
+        trip_id:
+          type: integer
+          format: int64
+        customer_id:
+          type: integer
+          format: int64
+        driver_id:
+          type: integer
+          format: int64
+        score:
+          type: integer
+        comment:
+          type: string

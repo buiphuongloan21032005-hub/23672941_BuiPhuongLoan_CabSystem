@@ -1,0 +1,112 @@
+openapi: 3.0.0
+info:
+  title: CAB System - Payment API
+  description: |
+    API hỗ trợ thanh toán chuyến bằng tiền mặt hoặc thanh toán điện tử giả lập.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local server
+
+paths:
+  /trips/{tripId}/payment:
+    get:
+      summary: Get payment information by trip
+      operationId: getPaymentByTrip
+      tags:
+        - Payments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          description: ID of the trip
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Payment information found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '404':
+          description: Payment not found
+
+    post:
+      summary: Create payment for trip
+      operationId: createPayment
+      tags:
+        - Payments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          description: ID of the trip
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Payment method selected by customer
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '201':
+          description: Payment recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: Trip is not completed or payment data is invalid
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    PaymentRequest:
+      type: object
+      required:
+        - payment_method
+      properties:
+        payment_method:
+          type: string
+          enum:
+            - CASH
+            - ELECTRONIC
+
+    Payment:
+      type: object
+      properties:
+        payment_id:
+          type: integer
+          format: int64
+        trip_id:
+          type: integer
+          format: int64
+        amount:
+          type: number
+          format: double
+        payment_method:
+          type: string
+          enum:
+            - CASH
+            - ELECTRONIC
+        payment_status:
+          type: string
+          enum:
+            - PENDING
+            - SUCCESS
+            - FAILED

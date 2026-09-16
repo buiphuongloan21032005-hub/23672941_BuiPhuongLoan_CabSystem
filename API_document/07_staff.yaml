@@ -1,0 +1,187 @@
+openapi: 3.0.0
+info:
+  title: CAB System - Staff API
+  description: |
+    API dành cho nhân viên vận hành:
+    tạo tài khoản tài xế, tra cứu khách hàng, tài xế, phương tiện,
+    theo dõi chuyến, hủy chuyến gặp sự cố và tra cứu giao dịch.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local server
+
+paths:
+  /staff/drivers:
+    post:
+      summary: Create driver account
+      operationId: createDriverAccount
+      tags:
+        - Staff
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Driver account information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDriverRequest'
+      responses:
+        '201':
+          description: Driver account created successfully
+        '400':
+          description: Invalid input
+
+    get:
+      summary: Search drivers
+      operationId: searchDrivers
+      tags:
+        - Staff
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Driver search result
+
+  /staff/customers:
+    get:
+      summary: Search customers
+      operationId: searchCustomers
+      tags:
+        - Staff
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Customer search result
+
+  /staff/vehicles:
+    get:
+      summary: Search vehicles
+      operationId: searchVehicles
+      tags:
+        - Staff
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vehicle search result
+
+  /staff/trips:
+    get:
+      summary: Monitor trips
+      operationId: monitorTrips
+      tags:
+        - Staff
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: trip_status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Trip list
+
+  /staff/trips/{tripId}/cancel:
+    put:
+      summary: Cancel incident trip
+      operationId: cancelIncidentTrip
+      tags:
+        - Staff
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Incident cancellation reason
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cancel_reason
+              properties:
+                cancel_reason:
+                  type: string
+      responses:
+        '200':
+          description: Trip cancelled successfully
+        '400':
+          description: Trip cannot be cancelled
+
+  /staff/payments:
+    get:
+      summary: Search payment transactions
+      operationId: searchPayments
+      tags:
+        - Staff
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: payment_status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - PENDING
+              - SUCCESS
+              - FAILED
+      responses:
+        '200':
+          description: Payment transaction list
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CreateDriverRequest:
+      type: object
+      required:
+        - full_name
+        - email
+        - phone
+        - password
+      properties:
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        password:
+          type: string
+          format: password
