@@ -955,19 +955,3 @@ Nhà cung cấp thanh toán giả lập liên kết với UC07 Thanh toán chuy�
 | BG05 | BR11 | NFR02, NFR08–NFR09 | Toàn hệ thống | Kiểm tra trong quá trình triển khai |
 
 ---
-
-# TÓM TẮT PHẠM VI TRIỂN KHAI 7 TUẦN
-
-Phiên bản đầu của CAB System chỉ cần chứng minh đầy đủ luồng cốt lõi:
-
-**Đăng nhập → Đặt xe → Tự động gán tài xế → Tài xế cập nhật trạng thái → Hoàn thành → Thanh toán**
-
-Các chức năng bổ trợ chỉ giữ ở mức tối thiểu:
-- Khách hàng xem chuyến và lịch sử trong cùng một màn hình.
-- Khách hàng được hủy trước khi tài xế đến điểm đón.
-- Nhân viên vận hành dùng một chức năng tra cứu chung.
-- Nhân viên vận hành theo dõi và hủy chuyến gặp sự cố.
-- Không làm đánh giá.
-- Không làm báo cáo.
-- Không làm GPS thời gian thực.
-- Không làm cơ chế tài xế chấp nhận/từ chối chuyến.
