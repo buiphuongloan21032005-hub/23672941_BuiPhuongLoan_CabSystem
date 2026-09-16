@@ -1,18 +1,5 @@
 # CAB SYSTEM – SOFTWARE REQUIREMENTS SPECIFICATION (BẢN RÚT GỌN 7 TUẦN)
 
-> Mục tiêu của bản này: giữ đúng nghiệp vụ cốt lõi của hệ thống đặt xe, giảm số màn hình/Use Case/bảng dữ liệu không cần thiết và ưu tiên các chức năng có thể triển khai thực tế bằng Node.js trong thời gian 7 tuần.
->
-> Các thay đổi chính so với bản trước:
-> - Bỏ vai trò **Quản lý** và toàn bộ chức năng **Báo cáo**.
-> - Bỏ toàn bộ chức năng **Đánh giá tài xế** và bảng `Rating`.
-> - Gộp các chức năng tra cứu của nhân viên vận hành thành **Tra cứu dữ liệu hệ thống**.
-> - Gộp **lịch sử chuyến** vào chức năng **xem/theo dõi chuyến**.
-> - Gộp cập nhật thông tin khách hàng và cập nhật hồ sơ tài xế thành **Cập nhật hồ sơ người dùng**.
-> - Giữ chức năng khách hàng hủy chuyến nhưng áp dụng chính sách đơn giản: chỉ được hủy khi chuyến đang tìm tài xế hoặc đã có tài xế nhưng tài xế chưa đến điểm đón.
-> - Không có bước tài xế chấp nhận/từ chối chuyến. Hệ thống tự động gán tài xế phù hợp.
-
----
-
 # BƯỚC 1. BUSINESS CONTEXT – BỐI CẢNH KINH DOANH
 
 ## 1.1. Business Context
