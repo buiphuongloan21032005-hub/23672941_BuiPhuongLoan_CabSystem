@@ -1,9 +1,5 @@
 # DDD BOUNDED CONTEXT & MICROSERVICE DESIGN – CAB SYSTEM
 
-> Repository: `buiphuongloan21032005-hub/23672941_BuiPhuongLoan_CabSystem`  
-> Nhánh đối chiếu: `main`  
-> Tài liệu chính: `srs.md`, Functional Requirements, Business Requirements, Business Rules, Business Process / Workflow, Use Case, ERD/RTM và thư mục `API_document`.
-
 ## Cách trình bày
 
 Tài liệu này được rút gọn theo đúng **5 nội dung chính** trên sơ đồ giảng viên hướng dẫn:
@@ -961,35 +957,3 @@ Không chọn DBMS trước. Việc lựa chọn được thực hiện sau khi 
 
 ---
 
-# KẾT LUẬN
-
-Kiến trúc CAB System trong phạm vi hiện tại gồm:
-
-```text
-BC01 Account & Access
-    → account-service
-    → account_db (PostgreSQL)
-
-BC02 Driver & Vehicle
-    → driver-service
-    → driver_db (PostgreSQL)
-
-BC03 Trip & Dispatch
-    → trip-service
-    → trip_db (PostgreSQL)
-
-BC04 Payment
-    → payment-service
-    → payment_db (PostgreSQL)
-```
-
-Ranh giới quan trọng:
-
-```text
-Account Service sở hữu User
-Driver Service sở hữu Driver + Vehicle
-Trip Service sở hữu Trip + Rating
-Payment Service sở hữu Payment
-```
-
-Các service trao đổi qua REST API, không sử dụng chung database và không tạo Foreign Key xuyên database.
