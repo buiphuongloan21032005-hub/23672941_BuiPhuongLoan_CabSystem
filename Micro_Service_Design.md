@@ -1,40 +1,4 @@
 # DDD BOUNDED CONTEXT & MICROSERVICE DESIGN – CAB SYSTEM
-
-## Cách trình bày
-
-Tài liệu này được rút gọn theo đúng **5 nội dung chính** trên sơ đồ giảng viên hướng dẫn:
-
-```text
-FR + Business Process / Workflow
-            ↓
-     1. Bounded Context
-            ↓
-  2. Ubiquitous Language
-            ↓
-       Microservice
-        ↙        ↘
-  3. API      4. ERD / CSDL
-                    ↓
-             5. Database Type
-```
-
-Nguyên tắc áp dụng:
-
-```text
-1 Bounded Context = 1 Sub-domain = 1 Microservice = 1 Database riêng
-```
-
-- Không dùng chung database giữa các microservice.
-- Không tạo Foreign Key trực tiếp giữa database của hai microservice.
-- ID trỏ tới dữ liệu do service khác sở hữu chỉ là **External Reference ID**.
-- Khi cần dữ liệu của service khác phải gọi REST API của service đó.
-- Không thêm actor hoặc chức năng ngoài SRS.
-- Không thêm Kafka, RabbitMQ, Event Bus, CQRS, Event Sourcing hoặc Kubernetes trong phiên bản đồ án 7 tuần.
-- Ưu tiên REST API và kiến trúc đơn giản, dễ triển khai bằng Node.js.
-- Khi có khác biệt giữa tài liệu, ưu tiên SRS mới nhất rồi mới đến Business Process/Business Rules, Use Case/RTM, API và ERD hiện tại.
-
----
-
 # 1. XÁC ĐỊNH BOUNDED CONTEXT
 
 ## 1.1. Cơ sở phân rã
