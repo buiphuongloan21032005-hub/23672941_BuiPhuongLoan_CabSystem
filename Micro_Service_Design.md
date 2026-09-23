@@ -3,50 +3,55 @@
 
 ## 1.1. Cơ sở phân rã
 
-Bounded Context không được chia theo tên bảng mà dựa trên **ranh giới nghiệp vụ** của CAB System.
-
-Workflow chính trong phạm vi hiện tại:
+SRS hiện tại có workflow chính:
 
 ```text
 Khách hàng đăng nhập
         ↓
 Tạo yêu cầu đặt xe
         ↓
-Hệ thống tìm tài xế AVAILABLE
+Hệ thống tạo chuyến SEARCHING_DRIVER
+        ↓
+Tìm tài xế AVAILABLE
         ↓
 Kiểm tra phương tiện phù hợp
         ↓
-Tự động gán tài xế
+Tự động gán tài xế phù hợp đầu tiên
         ↓
-Tài xế cập nhật tiến trình chuyến
+Tài xế thực hiện và cập nhật trạng thái chuyến
         ↓
 Hoàn thành chuyến
         ↓
 Tính cước
         ↓
-Khách hàng chọn phương thức thanh toán
-        ↓
-Ghi nhận kết quả thanh toán
+Khách hàng thanh toán
         ↓
 Khách hàng đánh giá tài xế
 ```
 
-Phiên bản SRS hiện tại sử dụng cơ chế **hệ thống tự động gán tài xế**, không có bước tài xế chấp nhận/từ chối chuyến trong workflow chính.
+Ngoài workflow chính, hệ thống còn có nghiệp vụ dành cho nhân viên vận hành và quản lý: tra cứu khách hàng, tài xế, phương tiện, chuyến, giao dịch; hủy chuyến gặp sự cố; xem báo cáo số chuyến và doanh thu.
 
-## 1.2. Kết quả phân rã
+### Nguyên tắc phân rã
 
-CAB System được chia thành **4 Bounded Context**. Số lượng này đủ tách ranh giới nghiệp vụ nhưng vẫn phù hợp phạm vi triển khai khoảng 7 tuần.
+Không chia Context theo tên bảng hoặc tên file YAML một cách máy móc. Việc phân rã dựa trên **ranh giới nghiệp vụ và trách nhiệm dữ liệu**.
+
+Sau khi tách chi tiết hơn so với phiên bản 4 Context ban đầu, CAB System được phân thành **8 Bounded Context**. Cách tách này vẫn bám đúng FR01–FR33, không thêm chức năng mới.
+
+> **Lưu ý:** Không tạo `Notification Service` riêng. Trong SRS chỉ có FR12 thông báo khi không tìm được tài xế, còn SMS/push notification thực tế nằm ngoài phạm vi. FR12 được đặt trong Dispatch Context.  
+> `Rating` được tách thành Context riêng vì SRS có nhóm nghiệp vụ đánh giá rõ ràng với FR22–FR23 và API `06_rating.yaml` riêng.
+
+## 1.2. Bảng tổng quan 8 Bounded Context
 
 | STT | Bounded Context | Sub-domain | Microservice | Database | FR chính | Business Process |
 |---|---|---|---|---|---|---|
-| 1 | **BC01 – Account & Access** | Identity & Account | `account-service` | `account_db` | FR01–FR04, FR24, FR32–FR33 | Đăng ký, đăng nhập, quản lý hồ sơ, tạo tài khoản tài xế, xác thực/phân quyền |
-| 2 | **BC02 – Driver & Vehicle** | Driver Operations | `driver-service` | `driver_db` | FR05–FR07, FR25–FR26; hỗ trợ FR09–FR10 | Quản lý hồ sơ tài xế, phương tiện, trạng thái sẵn sàng, cung cấp tài xế phù hợp |
-| 3 | **BC03 – Trip & Dispatch** | Booking, Dispatch & Trip Lifecycle | `trip-service` | `trip_db` | FR08–FR17, FR22–FR23, FR27–FR28, FR30 | Tạo chuyến, tìm/gán tài xế, thực hiện chuyến, tính cước, đánh giá, báo cáo chuyến |
-| 4 | **BC04 – Payment** | Payment Transaction | `payment-service` | `payment_db` | FR18–FR21, FR29, FR31 | Thanh toán tiền mặt/điện tử, tra cứu giao dịch, báo cáo doanh thu |
-
-> `Rating` được đặt trong Trip & Dispatch Context vì chỉ phát sinh sau một chuyến đã hoàn thành và phụ thuộc trực tiếp vào vòng đời Trip.  
-> `Report` không tách thành microservice riêng: báo cáo số chuyến thuộc Trip Service và báo cáo doanh thu thuộc Payment Service.  
-> `Staff` là actor sử dụng API vận hành, không phải một sub-domain riêng nên không tạo Staff Service.
+| 1 | **BC01 – Account & Access** | Identity & Access | `account-service` | `account_db` | FR01–FR04, FR32–FR33 | Đăng ký, đăng nhập, cập nhật tài khoản, tạo tài khoản tài xế, xác thực và phân quyền |
+| 2 | **BC02 – Driver & Vehicle** | Driver Operations | `driver-service` | `driver_db` | FR05–FR07 | Quản lý hồ sơ tài xế, phương tiện, trạng thái sẵn sàng |
+| 3 | **BC03 – Booking** | Ride Booking | `booking-service` | `booking_db` | FR08 | Tiếp nhận và lưu yêu cầu đặt xe của khách hàng |
+| 4 | **BC04 – Dispatch** | Driver Dispatch | `dispatch-service` | `dispatch_db` | FR09–FR12 | Tìm tài xế, kiểm tra phương tiện, tự động gán tài xế, xử lý không có tài xế |
+| 5 | **BC05 – Trip** | Trip Lifecycle | `trip-service` | `trip_db` | FR13–FR17 | Theo dõi, hủy, lịch sử, cập nhật tiến trình chuyến, tính cước |
+| 6 | **BC06 – Payment** | Payment Transaction | `payment-service` | `payment_db` | FR18–FR21 | Chọn phương thức và ghi nhận thanh toán tiền mặt/điện tử |
+| 7 | **BC07 – Rating** | Driver Rating | `rating-service` | `rating_db` | FR22–FR23 | Khách hàng đánh giá tài xế sau chuyến hoàn thành |
+| 8 | **BC08 – Operations & Reporting** | Back-office Operations | `operations-service` | `operations_db` | FR24–FR31 | Tra cứu vận hành, xử lý chuyến sự cố, báo cáo số chuyến và doanh thu |
 
 ---
 
@@ -54,37 +59,30 @@ CAB System được chia thành **4 Bounded Context**. Số lượng này đủ 
 
 ### Mục đích
 
-Quản lý danh tính và tài khoản người dùng CAB System: đăng ký khách hàng, đăng nhập, cập nhật hồ sơ cá nhân, tạo tài khoản tài xế, tra cứu khách hàng, xác thực và phân quyền.
+Quản lý danh tính, thông tin tài khoản, đăng nhập, tài khoản tài xế do nhân viên vận hành tạo, xác thực và phân quyền.
 
 ### Functional Requirements
 
-| Mã FR | Chức năng | Vai trò |
+| Mã FR | Chức năng | Vai trò trong Context |
 |---|---|---|
 | FR01 | Hệ thống cho phép khách hàng đăng ký tài khoản | Owner |
 | FR02 | Hệ thống cho phép người dùng đăng nhập | Owner |
 | FR03 | Hệ thống cho phép khách hàng cập nhật thông tin cá nhân | Owner |
-| FR04 | Hệ thống cho phép nhân viên vận hành tạo tài khoản tài xế | Owner; Driver Service hỗ trợ tạo hồ sơ Driver |
-| FR24 | Hệ thống cho phép nhân viên vận hành tra cứu khách hàng | Owner |
+| FR04 | Hệ thống cho phép nhân viên vận hành tạo tài khoản tài xế | Owner tài khoản; Driver Service nhận `user_id` để tạo hồ sơ Driver |
 | FR32 | Hệ thống xác thực người dùng | Owner |
-| FR33 | Hệ thống kiểm tra quyền truy cập | Owner cơ chế; các service thực thi quyền ở endpoint của mình |
+| FR33 | Hệ thống kiểm tra quyền truy cập | Owner cơ chế xác thực/phân quyền; từng service kiểm tra role tại endpoint |
 
-### Workflow tham gia
+### Business Process / Workflow
 
-| Workflow | Xử lý | Kết quả |
+| Workflow | Bước xử lý | Kết quả |
 |---|---|---|
-| Đăng ký khách hàng | Kiểm tra dữ liệu → kiểm tra email/phone → băm mật khẩu → tạo User role CUSTOMER | Tạo tài khoản khách hàng |
-| Đăng nhập | Kiểm tra thông tin đăng nhập → kiểm tra password hash → phát token | Người dùng được xác thực |
-| Cập nhật hồ sơ | Xác định User từ token → kiểm tra dữ liệu → cập nhật hồ sơ | Hồ sơ được cập nhật |
-| Tạo tài khoản tài xế | Staff tạo User role DRIVER → gọi Driver Service tạo Driver theo `user_id` | Có tài khoản và hồ sơ nghiệp vụ tài xế |
-| Tra cứu khách hàng | Staff tìm User role CUSTOMER | Trả danh sách khách hàng |
-| Phân quyền | Kiểm tra token và role tại endpoint | Cho phép/từ chối request |
+| Đăng ký khách hàng | Kiểm tra dữ liệu → kiểm tra email/phone → băm mật khẩu → tạo User role CUSTOMER | Tài khoản khách hàng được tạo |
+| Đăng nhập | Kiểm tra email/mật khẩu → xác thực password hash → phát token | Người dùng đăng nhập thành công |
+| Cập nhật thông tin | Xác định User từ token → kiểm tra dữ liệu → cập nhật | Hồ sơ tài khoản được cập nhật |
+| Tạo tài khoản tài xế | Staff tạo User role DRIVER → gọi Driver Service tạo Driver theo `user_id` | Có tài khoản và hồ sơ tài xế |
+| Phân quyền | Kiểm tra token và role trước khi xử lý API | Request được cho phép hoặc từ chối |
 
-### Microservice và dữ liệu sở hữu
-
-**Microservice:** `account-service`  
-**Database:** `account_db`
-
-Dữ liệu sở hữu:
+### Dữ liệu Service sở hữu
 
 - `User`
 - `Role`
@@ -93,94 +91,137 @@ Dữ liệu sở hữu:
 - `Phone`
 - `PasswordHash`
 
-Không sở hữu `Driver`, `Vehicle`, `Trip`, `Payment`, `Rating`.
-
 ---
 
 ## 1.4. BC02 – Driver & Vehicle Context
 
 ### Mục đích
 
-Quản lý hồ sơ nghiệp vụ tài xế, phương tiện và trạng thái sẵn sàng; cung cấp dữ liệu tài xế phù hợp cho Trip Service khi điều phối chuyến.
+Quản lý hồ sơ nghiệp vụ tài xế, phương tiện và trạng thái sẵn sàng. Cung cấp dữ liệu tài xế phù hợp cho Dispatch Service.
 
 ### Functional Requirements
 
-| Mã FR | Chức năng | Vai trò |
+| Mã FR | Chức năng | Vai trò trong Context |
 |---|---|---|
-| FR05 | Hệ thống cho phép tài xế cập nhật hồ sơ | Owner; phần `full_name`, `phone` do Account Service sở hữu |
+| FR05 | Hệ thống cho phép tài xế cập nhật hồ sơ | Owner phần hồ sơ Driver; dữ liệu tài khoản chung được đồng bộ qua Account Service |
 | FR06 | Hệ thống cho phép tài xế cập nhật phương tiện | Owner |
 | FR07 | Hệ thống cho phép tài xế cập nhật trạng thái tài xế | Owner |
-| FR09 | Hệ thống tìm tài xế đang sẵn sàng | Service hỗ trợ Trip Service |
-| FR10 | Hệ thống tìm tài xế có phương tiện phù hợp | Service hỗ trợ Trip Service |
-| FR25 | Hệ thống cho phép nhân viên vận hành tra cứu tài xế | Owner |
-| FR26 | Hệ thống cho phép nhân viên vận hành tra cứu phương tiện | Owner |
 
-### Workflow tham gia
+### Business Process / Workflow
 
-| Workflow | Xử lý | Kết quả |
+| Workflow | Bước xử lý | Kết quả |
 |---|---|---|
-| Khởi tạo tài xế | Nhận `user_id` từ Account Service → tạo Driver | Có hồ sơ Driver |
-| Cập nhật hồ sơ | Cập nhật dữ liệu Driver; dữ liệu User gọi Account Service | Hồ sơ đúng theo data owner |
+| Khởi tạo Driver | Nhận `user_id` từ Account Service | Tạo hồ sơ Driver |
+| Cập nhật hồ sơ | Tài xế cập nhật dữ liệu nghiệp vụ | Driver được cập nhật |
 | Cập nhật phương tiện | Kiểm tra dữ liệu → tạo/cập nhật Vehicle | Vehicle được lưu |
-| Cập nhật sẵn sàng | Driver chuyển AVAILABLE/UNAVAILABLE | Trạng thái phục vụ matching |
-| Tìm tài xế phù hợp | Lọc AVAILABLE + phương tiện đúng loại | Trả ứng viên cho Trip Service |
-| Tra cứu vận hành | Staff lọc Driver/Vehicle | Trả dữ liệu phù hợp |
+| Cập nhật sẵn sàng | Driver chuyển AVAILABLE/UNAVAILABLE | Trạng thái dùng cho Dispatch |
+| Cung cấp ứng viên | Lọc AVAILABLE + Vehicle ACTIVE + đúng loại xe | Trả danh sách tài xế phù hợp cho Dispatch Service |
 
-### Microservice và dữ liệu sở hữu
-
-**Microservice:** `driver-service`  
-**Database:** `driver_db`
-
-Dữ liệu sở hữu:
+### Dữ liệu Service sở hữu
 
 - `Driver`
 - `Vehicle`
 - `AvailabilityStatus`
 - `VehicleType`
 
-`drivers.user_id` chỉ là **External Reference ID** tới Account Service.
+`drivers.user_id` là **External Reference ID** tới Account Service.
 
 ---
 
-## 1.5. BC03 – Trip & Dispatch Context
+## 1.5. BC03 – Booking Context
 
 ### Mục đích
 
-Quản lý nghiệp vụ cốt lõi của CAB System từ tạo yêu cầu đặt xe, tìm và gán tài xế, theo dõi vòng đời chuyến, tính cước, hủy chuyến, lịch sử, đánh giá và báo cáo số lượng chuyến.
+Tiếp nhận yêu cầu đặt xe của khách hàng, lưu thông tin yêu cầu ban đầu và điều phối việc tạo Trip cùng quá trình tìm tài xế.
 
 ### Functional Requirements
 
-| Mã FR | Chức năng | Vai trò |
+| Mã FR | Chức năng | Vai trò trong Context |
 |---|---|---|
 | FR08 | Hệ thống cho phép khách hàng tạo yêu cầu đặt xe | Owner |
+
+### Business Process / Workflow
+
+| Workflow | Bước xử lý | Kết quả |
+|---|---|---|
+| Tạo yêu cầu đặt xe | Nhận điểm đón, điểm đến, loại xe → kiểm tra dữ liệu | BookingRequest hợp lệ |
+| Khởi tạo chuyến | Gọi Trip Service tạo Trip trạng thái `SEARCHING_DRIVER` | Có `trip_id` |
+| Yêu cầu điều phối | Gọi Dispatch Service với `trip_id` và loại xe | Bắt đầu tìm/gán tài xế |
+
+### Dữ liệu Service sở hữu
+
+- `BookingRequest`
+- `PickupAddress`
+- `DestinationAddress`
+- `RequestedVehicleType`
+
+`customer_id` là External Reference ID tới Account Service.  
+`trip_id` là External Reference ID tới Trip Service sau khi chuyến được tạo.
+
+> `BookingRequest` là entity kỹ thuật để tách trách nhiệm giữa nhận yêu cầu và quản lý vòng đời Trip. Việc thêm entity này **không tạo Functional Requirement mới** và không thay đổi workflow trong SRS.
+
+---
+
+## 1.6. BC04 – Dispatch Context
+
+### Mục đích
+
+Tự động tìm tài xế đang sẵn sàng, kiểm tra phương tiện phù hợp, chọn tài xế phù hợp đầu tiên và ghi nhận kết quả điều phối.
+
+### Functional Requirements
+
+| Mã FR | Chức năng | Vai trò trong Context |
+|---|---|---|
 | FR09 | Hệ thống tìm tài xế đang sẵn sàng | Owner orchestration; Driver Service cung cấp dữ liệu |
 | FR10 | Hệ thống tìm tài xế có phương tiện phù hợp | Owner orchestration; Driver Service cung cấp dữ liệu |
 | FR11 | Hệ thống tự động gán tài xế phù hợp đầu tiên cho chuyến | Owner |
-| FR12 | Hệ thống thông báo khi không tìm được tài xế | Owner; không tạo Notification Service riêng |
+| FR12 | Hệ thống thông báo khi không tìm được tài xế | Owner kết quả điều phối; trả trạng thái để Booking/Trip hiển thị cho khách hàng |
+
+### Business Process / Workflow
+
+| Workflow | Bước xử lý | Kết quả |
+|---|---|---|
+| Tìm tài xế | Gọi Driver Service với `vehicle_type` | Có danh sách Driver phù hợp hoặc rỗng |
+| Gán tài xế | Chọn ứng viên phù hợp đầu tiên | Tạo DriverAssignment |
+| Cập nhật Trip | Gọi Trip Service gán `driver_id` | Trip chuyển `DRIVER_ASSIGNED` |
+| Không có tài xế | Không có ứng viên phù hợp | Trip chuyển `NO_DRIVER`; kết quả được trả cho khách hàng |
+
+### Dữ liệu Service sở hữu
+
+- `DriverAssignment`
+- `AssignmentStatus`
+
+`trip_id`, `driver_id`, `vehicle_id` đều là **External Reference ID**, không tạo FK sang database khác.
+
+---
+
+## 1.7. BC05 – Trip Context
+
+### Mục đích
+
+Quản lý vòng đời chuyến từ khi được tạo đến khi hoàn thành hoặc bị hủy; cung cấp lịch sử, trạng thái chuyến và số tiền cuối cùng.
+
+### Functional Requirements
+
+| Mã FR | Chức năng | Vai trò trong Context |
+|---|---|---|
 | FR13 | Hệ thống cho phép khách hàng theo dõi chuyến | Owner |
 | FR14 | Hệ thống cho phép khách hàng hủy chuyến | Owner |
 | FR15 | Hệ thống cho phép khách hàng xem lịch sử chuyến | Owner |
 | FR16 | Hệ thống cho phép tài xế cập nhật trạng thái chuyến theo đúng trình tự | Owner |
-| FR17 | Hệ thống tính số tiền phải trả | Owner |
-| FR22 | Hệ thống cho phép khách hàng đánh giá tài xế | Owner |
-| FR23 | Hệ thống lưu đánh giá | Owner |
-| FR27 | Hệ thống cho phép nhân viên vận hành theo dõi chuyến | Owner |
-| FR28 | Hệ thống cho phép nhân viên vận hành hủy chuyến kèm lý do khi có sự cố | Owner |
-| FR30 | Hệ thống cho phép quản lý xem báo cáo số lượng chuyến | Owner |
+| FR17 | Hệ thống tính số tiền phải trả | Owner; kết quả được Payment Service sử dụng |
 
-### Workflow tham gia
+### Business Process / Workflow
 
-| Workflow | Xử lý | Kết quả |
+| Workflow | Bước xử lý | Kết quả |
 |---|---|---|
-| Tạo chuyến | Nhận điểm đón, điểm đến, loại xe → tạo Trip `SEARCHING_DRIVER` | Trip mới |
-| Tìm tài xế | Gọi Driver Service để lấy Driver AVAILABLE + Vehicle đúng loại | Có danh sách ứng viên |
-| Gán tài xế | Gán ứng viên phù hợp đầu tiên | Trip `DRIVER_ASSIGNED` |
-| Không có tài xế | Không có ứng viên | Trip `NO_DRIVER` và trả thông báo |
-| Thực hiện chuyến | Driver cập nhật trạng thái đúng trình tự | Vòng đời Trip tiến triển |
-| Hoàn thành | Trip chuyển `COMPLETED` → tính cước | Có `fare_amount` |
-| Hủy chuyến | Customer hoặc Staff thực hiện theo quyền | Trip `CANCELLED` |
-| Đánh giá | Trip đã COMPLETED → customer gửi score/comment | Rating được lưu |
-| Báo cáo chuyến | Tổng hợp dữ liệu Trip | Trả số lượng chuyến |
+| Tạo Trip | Nhận dữ liệu từ Booking Service | Trip `SEARCHING_DRIVER` |
+| Nhận kết quả Dispatch | Nhận `driver_id` hoặc kết quả không có tài xế | `DRIVER_ASSIGNED` hoặc `NO_DRIVER` |
+| Theo dõi chuyến | Đọc Trip theo quyền khách hàng | Trả trạng thái hiện tại |
+| Thực hiện chuyến | Driver cập nhật trạng thái đúng trình tự | Trip tiến triển qua vòng đời |
+| Hoàn thành | Chuyển `COMPLETED` → tính `fare_amount` | Có số tiền phải trả |
+| Hủy | Customer hoặc Operations Service yêu cầu hủy | Trip `CANCELLED` + lý do nếu có |
+| Lịch sử | Truy vấn các Trip theo `customer_id` | Danh sách chuyến |
 
 ### Trạng thái Trip
 
@@ -195,324 +236,478 @@ SEARCHING_DRIVER
     └──> CANCELLED
 ```
 
-### Microservice và dữ liệu sở hữu
-
-**Microservice:** `trip-service`  
-**Database:** `trip_db`
-
-Dữ liệu sở hữu:
+### Dữ liệu Service sở hữu
 
 - `Trip`
-- `Rating`
 - `TripStatus`
 - `FareAmount`
-- `PickupAddress`
-- `DestinationAddress`
+- `CancelReason`
 
-`trips.customer_id` là External Reference ID tới Account Service.  
-`trips.driver_id` là External Reference ID tới Driver Service.
+`booking_id`, `customer_id`, `driver_id` là External Reference ID.
 
 ---
 
-## 1.6. BC04 – Payment Context
+## 1.8. BC06 – Payment Context
 
 ### Mục đích
 
-Quản lý giao dịch thanh toán của chuyến, bao gồm chọn phương thức, ghi nhận tiền mặt, gửi thanh toán điện tử tới bộ giả lập, lưu kết quả, tra cứu giao dịch và báo cáo doanh thu.
+Quản lý giao dịch thanh toán theo chuyến, gồm tiền mặt và thanh toán điện tử qua nhà cung cấp giả lập.
 
 ### Functional Requirements
 
-| Mã FR | Chức năng | Vai trò |
+| Mã FR | Chức năng | Vai trò trong Context |
 |---|---|---|
 | FR18 | Hệ thống cho phép khách hàng chọn phương thức thanh toán | Owner |
 | FR19 | Hệ thống ghi nhận thanh toán tiền mặt | Owner |
 | FR20 | Hệ thống gửi yêu cầu thanh toán điện tử tới bộ giả lập | Owner |
 | FR21 | Hệ thống ghi nhận kết quả thanh toán | Owner |
-| FR29 | Hệ thống cho phép nhân viên vận hành tra cứu giao dịch | Owner |
-| FR31 | Hệ thống cho phép quản lý xem báo cáo doanh thu | Owner |
-| FR17 | Hệ thống tính số tiền phải trả | Không sở hữu; nhận `fare_amount` từ Trip Service |
 
-### Workflow tham gia
+### Business Process / Workflow
 
-| Workflow | Xử lý | Kết quả |
+| Workflow | Bước xử lý | Kết quả |
 |---|---|---|
-| Chuẩn bị thanh toán | Gọi Trip Service → kiểm tra Trip COMPLETED → lấy fare | Có số tiền hợp lệ |
-| Chọn phương thức | Customer chọn CASH hoặc ELECTRONIC | Xác định payment method |
-| Thanh toán tiền mặt | Tạo Payment và ghi nhận thành công | Giao dịch được lưu |
-| Thanh toán điện tử | Tạo Payment PENDING → gửi bộ giả lập → nhận kết quả → cập nhật status | Lưu kết quả điện tử |
-| Tra cứu giao dịch | Staff lọc Payment | Trả danh sách giao dịch |
-| Báo cáo doanh thu | Tổng hợp các giao dịch thành công | Trả tổng doanh thu |
+| Chuẩn bị thanh toán | Gọi Trip Service kiểm tra Trip `COMPLETED` và lấy `fare_amount` | Có số tiền hợp lệ |
+| Chọn phương thức | Customer chọn CASH hoặc ELECTRONIC | Xác định cách thanh toán |
+| Tiền mặt | Ghi nhận Payment SUCCESS | Giao dịch được lưu |
+| Điện tử | Tạo Payment PENDING → gọi bộ giả lập → nhận kết quả | Payment SUCCESS hoặc FAILED |
 
-### Microservice và dữ liệu sở hữu
-
-**Microservice:** `payment-service`  
-**Database:** `payment_db`
-
-Dữ liệu sở hữu:
+### Dữ liệu Service sở hữu
 
 - `Payment`
 - `PaymentMethod`
 - `PaymentStatus`
 - `Amount`
 
-`payments.trip_id` chỉ là External Reference ID tới Trip Service.
+`trip_id` là External Reference ID tới Trip Service.
 
 ---
 
-## 1.7. Mapping toàn bộ FR → Bounded Context
+## 1.9. BC07 – Rating Context
+
+### Mục đích
+
+Quản lý đánh giá của khách hàng cho tài xế sau khi chuyến đi đã hoàn thành.
+
+### Functional Requirements
+
+| Mã FR | Chức năng | Vai trò trong Context |
+|---|---|---|
+| FR22 | Hệ thống cho phép khách hàng đánh giá tài xế | Owner |
+| FR23 | Hệ thống lưu đánh giá | Owner |
+
+### Business Process / Workflow
+
+| Workflow | Bước xử lý | Kết quả |
+|---|---|---|
+| Kiểm tra điều kiện | Gọi Trip Service kiểm tra Trip `COMPLETED` và lấy `driver_id`, `customer_id` | Cho phép hoặc từ chối đánh giá |
+| Gửi đánh giá | Nhận score 1–5 và comment | Rating hợp lệ |
+| Lưu đánh giá | Kiểm tra chưa đánh giá chuyến này → lưu | Rating được lưu |
+
+### Dữ liệu Service sở hữu
+
+- `Rating`
+- `Score`
+- `Comment`
+
+`trip_id`, `customer_id`, `driver_id` đều là External Reference ID.
+
+---
+
+## 1.10. BC08 – Operations & Reporting Context
+
+### Mục đích
+
+Cung cấp giao diện nghiệp vụ cho nhân viên vận hành và quản lý. Context này **không chiếm quyền sở hữu dữ liệu** của Account, Driver, Trip hoặc Payment; thay vào đó gọi API của các service sở hữu dữ liệu.
+
+### Functional Requirements
+
+| Mã FR | Chức năng | Vai trò trong Context |
+|---|---|---|
+| FR24 | Hệ thống cho phép nhân viên vận hành tra cứu khách hàng | Owner orchestration; Account Service cung cấp dữ liệu |
+| FR25 | Hệ thống cho phép nhân viên vận hành tra cứu tài xế | Owner orchestration; Driver Service cung cấp dữ liệu |
+| FR26 | Hệ thống cho phép nhân viên vận hành tra cứu phương tiện | Owner orchestration; Driver Service cung cấp dữ liệu |
+| FR27 | Hệ thống cho phép nhân viên vận hành theo dõi chuyến | Owner orchestration; Trip Service cung cấp dữ liệu |
+| FR28 | Hệ thống cho phép nhân viên vận hành hủy chuyến kèm lý do khi có sự cố | Owner workflow; Trip Service thực hiện thay đổi Trip |
+| FR29 | Hệ thống cho phép nhân viên vận hành tra cứu giao dịch | Owner orchestration; Payment Service cung cấp dữ liệu |
+| FR30 | Hệ thống cho phép quản lý xem báo cáo số lượng chuyến | Owner report API; tổng hợp từ Trip Service |
+| FR31 | Hệ thống cho phép quản lý xem báo cáo doanh thu | Owner report API; tổng hợp từ Payment Service |
+
+### Business Process / Workflow
+
+| Workflow | Bước xử lý | Kết quả |
+|---|---|---|
+| Tra cứu khách hàng | Gọi Account Service | Danh sách khách hàng |
+| Tra cứu tài xế/phương tiện | Gọi Driver Service | Danh sách phù hợp |
+| Theo dõi chuyến | Gọi Trip Service | Danh sách/trạng thái chuyến |
+| Hủy chuyến sự cố | Ghi nhận OperationAction → gọi Trip Service hủy với lý do | Trip bị hủy và có lịch sử thao tác vận hành |
+| Tra cứu giao dịch | Gọi Payment Service | Danh sách Payment |
+| Báo cáo số chuyến | Gọi Trip Service lấy aggregate | `total_trips` |
+| Báo cáo doanh thu | Gọi Payment Service lấy aggregate | `total_revenue` |
+
+### Dữ liệu Service sở hữu
+
+- `OperationAction`
+- `ActionType`
+- `ActionReason`
+
+Các dữ liệu Customer, Driver, Vehicle, Trip và Payment chỉ được **đọc qua API**, không sao chép thành bảng chính trong `operations_db`.
+
+---
+
+## 1.11. Mapping toàn bộ FR → Bounded Context
 
 | FR | Chức năng | Bounded Context | Microservice |
 |---|---|---|---|
 | FR01 | Khách hàng đăng ký tài khoản | BC01 | `account-service` |
 | FR02 | Người dùng đăng nhập | BC01 | `account-service` |
 | FR03 | Khách hàng cập nhật thông tin cá nhân | BC01 | `account-service` |
-| FR04 | Nhân viên vận hành tạo tài khoản tài xế | BC01 | `account-service`, Driver Service hỗ trợ |
-| FR05 | Tài xế cập nhật hồ sơ | BC02 | `driver-service`, Account Service hỗ trợ phần User |
+| FR04 | Nhân viên vận hành tạo tài khoản tài xế | BC01 | `account-service`; Driver Service hỗ trợ tạo hồ sơ |
+| FR05 | Tài xế cập nhật hồ sơ | BC02 | `driver-service` |
 | FR06 | Tài xế cập nhật phương tiện | BC02 | `driver-service` |
 | FR07 | Tài xế cập nhật trạng thái tài xế | BC02 | `driver-service` |
-| FR08 | Khách hàng tạo yêu cầu đặt xe | BC03 | `trip-service` |
-| FR09 | Tìm tài xế đang sẵn sàng | BC03 | `trip-service`, Driver Service hỗ trợ |
-| FR10 | Tìm tài xế có phương tiện phù hợp | BC03 | `trip-service`, Driver Service hỗ trợ |
-| FR11 | Tự động gán tài xế phù hợp đầu tiên | BC03 | `trip-service` |
-| FR12 | Thông báo khi không tìm được tài xế | BC03 | `trip-service` |
-| FR13 | Khách hàng theo dõi chuyến | BC03 | `trip-service` |
-| FR14 | Khách hàng hủy chuyến | BC03 | `trip-service` |
-| FR15 | Khách hàng xem lịch sử chuyến | BC03 | `trip-service` |
-| FR16 | Tài xế cập nhật trạng thái chuyến theo đúng trình tự | BC03 | `trip-service` |
-| FR17 | Tính số tiền phải trả | BC03 | `trip-service` |
-| FR18 | Khách hàng chọn phương thức thanh toán | BC04 | `payment-service` |
-| FR19 | Ghi nhận thanh toán tiền mặt | BC04 | `payment-service` |
-| FR20 | Gửi yêu cầu thanh toán điện tử tới bộ giả lập | BC04 | `payment-service` |
-| FR21 | Ghi nhận kết quả thanh toán | BC04 | `payment-service` |
-| FR22 | Khách hàng đánh giá tài xế | BC03 | `trip-service` |
-| FR23 | Lưu đánh giá | BC03 | `trip-service` |
-| FR24 | Nhân viên vận hành tra cứu khách hàng | BC01 | `account-service` |
-| FR25 | Nhân viên vận hành tra cứu tài xế | BC02 | `driver-service` |
-| FR26 | Nhân viên vận hành tra cứu phương tiện | BC02 | `driver-service` |
-| FR27 | Nhân viên vận hành theo dõi chuyến | BC03 | `trip-service` |
-| FR28 | Nhân viên vận hành hủy chuyến kèm lý do | BC03 | `trip-service` |
-| FR29 | Nhân viên vận hành tra cứu giao dịch | BC04 | `payment-service` |
-| FR30 | Quản lý xem báo cáo số lượng chuyến | BC03 | `trip-service` |
-| FR31 | Quản lý xem báo cáo doanh thu | BC04 | `payment-service` |
+| FR08 | Khách hàng tạo yêu cầu đặt xe | BC03 | `booking-service` |
+| FR09 | Tìm tài xế đang sẵn sàng | BC04 | `dispatch-service`; Driver Service cung cấp dữ liệu |
+| FR10 | Tìm tài xế có phương tiện phù hợp | BC04 | `dispatch-service`; Driver Service cung cấp dữ liệu |
+| FR11 | Tự động gán tài xế phù hợp đầu tiên | BC04 | `dispatch-service` |
+| FR12 | Thông báo khi không tìm được tài xế | BC04 | `dispatch-service` |
+| FR13 | Khách hàng theo dõi chuyến | BC05 | `trip-service` |
+| FR14 | Khách hàng hủy chuyến | BC05 | `trip-service` |
+| FR15 | Khách hàng xem lịch sử chuyến | BC05 | `trip-service` |
+| FR16 | Tài xế cập nhật trạng thái chuyến theo đúng trình tự | BC05 | `trip-service` |
+| FR17 | Tính số tiền phải trả | BC05 | `trip-service` |
+| FR18 | Khách hàng chọn phương thức thanh toán | BC06 | `payment-service` |
+| FR19 | Ghi nhận thanh toán tiền mặt | BC06 | `payment-service` |
+| FR20 | Gửi yêu cầu thanh toán điện tử tới bộ giả lập | BC06 | `payment-service` |
+| FR21 | Ghi nhận kết quả thanh toán | BC06 | `payment-service` |
+| FR22 | Khách hàng đánh giá tài xế | BC07 | `rating-service` |
+| FR23 | Lưu đánh giá | BC07 | `rating-service` |
+| FR24 | Nhân viên vận hành tra cứu khách hàng | BC08 | `operations-service`; Account Service cung cấp dữ liệu |
+| FR25 | Nhân viên vận hành tra cứu tài xế | BC08 | `operations-service`; Driver Service cung cấp dữ liệu |
+| FR26 | Nhân viên vận hành tra cứu phương tiện | BC08 | `operations-service`; Driver Service cung cấp dữ liệu |
+| FR27 | Nhân viên vận hành theo dõi chuyến | BC08 | `operations-service`; Trip Service cung cấp dữ liệu |
+| FR28 | Nhân viên vận hành hủy chuyến kèm lý do | BC08 | `operations-service`; Trip Service thực thi thay đổi |
+| FR29 | Nhân viên vận hành tra cứu giao dịch | BC08 | `operations-service`; Payment Service cung cấp dữ liệu |
+| FR30 | Quản lý xem báo cáo số lượng chuyến | BC08 | `operations-service`; Trip Service cung cấp aggregate |
+| FR31 | Quản lý xem báo cáo doanh thu | BC08 | `operations-service`; Payment Service cung cấp aggregate |
 | FR32 | Xác thực người dùng | BC01 | `account-service` |
 | FR33 | Kiểm tra quyền truy cập | BC01 | `account-service` + middleware tại từng service |
 
 ---
 
-## 1.8. Context Map
+## 1.12. Mapping Business Process → Microservice
+
+| STT | Business Activity | Bounded Context | Microservice | Entity/Data liên quan |
+|---|---|---|---|---|
+| 1 | Khách hàng đăng nhập | BC01 | `account-service` | User |
+| 2 | Khách hàng nhập điểm đón, điểm đến, loại xe | BC03 | `booking-service` | BookingRequest |
+| 3 | Khách hàng gửi yêu cầu đặt xe | BC03 | `booking-service` | BookingRequest |
+| 4 | Tạo Trip `SEARCHING_DRIVER` | BC05 | `trip-service` | Trip |
+| 5 | Tìm Driver AVAILABLE | BC04 + BC02 | `dispatch-service` → `driver-service` | DriverCandidate |
+| 6 | Kiểm tra Vehicle phù hợp | BC04 + BC02 | `dispatch-service` → `driver-service` | Vehicle |
+| 7 | Gán tài xế phù hợp đầu tiên | BC04 | `dispatch-service` | DriverAssignment |
+| 8 | Cập nhật `DRIVER_ASSIGNED` hoặc `NO_DRIVER` | BC05 | `trip-service` | Trip |
+| 9 | Khách hàng theo dõi chuyến | BC05 | `trip-service` | Trip |
+| 10 | Tài xế cập nhật tiến trình chuyến | BC05 | `trip-service` | TripStatus |
+| 11 | Hoàn thành chuyến và tính cước | BC05 | `trip-service` | FareAmount |
+| 12 | Khách hàng chọn phương thức thanh toán | BC06 | `payment-service` | Payment |
+| 13 | Ghi nhận tiền mặt hoặc gửi bộ giả lập | BC06 | `payment-service` | Payment |
+| 14 | Ghi nhận kết quả thanh toán | BC06 | `payment-service` | PaymentStatus |
+| 15 | Khách hàng đánh giá tài xế | BC07 | `rating-service` | Rating |
+| 16 | Nhân viên vận hành tra cứu/theo dõi | BC08 | `operations-service` | Dữ liệu tổng hợp qua API |
+| 17 | Nhân viên hủy chuyến gặp sự cố | BC08 + BC05 | `operations-service` → `trip-service` | OperationAction + Trip |
+| 18 | Quản lý xem báo cáo | BC08 | `operations-service` | Trip/Payment aggregate qua API |
+
+---
+
+## 1.13. Context Map
 
 ```mermaid
 flowchart LR
-    ACC["BC01 - Account & Access<br/>account-service<br/>account_db"]
-    DRV["BC02 - Driver & Vehicle<br/>driver-service<br/>driver_db"]
-    TRIP["BC03 - Trip & Dispatch<br/>trip-service<br/>trip_db"]
-    PAY["BC04 - Payment<br/>payment-service<br/>payment_db"]
-    EXT["Nhà cung cấp thanh toán<br/>giả lập - External Actor"]
+    ACC["BC01 Account & Access<br/>account-service<br/>account_db"]
+    DRV["BC02 Driver & Vehicle<br/>driver-service<br/>driver_db"]
+    BOOK["BC03 Booking<br/>booking-service<br/>booking_db"]
+    DSP["BC04 Dispatch<br/>dispatch-service<br/>dispatch_db"]
+    TRIP["BC05 Trip<br/>trip-service<br/>trip_db"]
+    PAY["BC06 Payment<br/>payment-service<br/>payment_db"]
+    RATE["BC07 Rating<br/>rating-service<br/>rating_db"]
+    OPS["BC08 Operations & Reporting<br/>operations-service<br/>operations_db"]
+    EXT["Nhà cung cấp thanh toán giả lập"]
 
-    ACC -->|"Tạo hồ sơ Driver<br/>user_id"| DRV
-    DRV -->|"Cập nhật profile User<br/>full_name, phone"| ACC
-    TRIP -->|"Tìm tài xế phù hợp<br/>availability + vehicle_type"| DRV
-    TRIP -->|"Lấy thông tin Driver<br/>driver_id"| DRV
-    PAY -->|"Kiểm tra Trip COMPLETED<br/>trip_id + fare_amount"| TRIP
-    PAY -->|"Yêu cầu thanh toán điện tử"| EXT
-    EXT -->|"Kết quả thanh toán"| PAY
+    ACC -->|"user_id khi tạo tài khoản DRIVER"| DRV
+    BOOK -->|"tạo Trip SEARCHING_DRIVER"| TRIP
+    BOOK -->|"trip_id + vehicle_type"| DSP
+    DSP -->|"tìm Driver AVAILABLE + Vehicle phù hợp"| DRV
+    DSP -->|"driver_id hoặc NO_DRIVER"| TRIP
+    PAY -->|"kiểm tra COMPLETED + lấy fare_amount"| TRIP
+    PAY -->|"yêu cầu thanh toán điện tử"| EXT
+    EXT -->|"kết quả SUCCESS/FAILED"| PAY
+    RATE -->|"kiểm tra COMPLETED + lấy customer_id/driver_id"| TRIP
+    OPS -->|"tra cứu khách hàng"| ACC
+    OPS -->|"tra cứu Driver/Vehicle"| DRV
+    OPS -->|"theo dõi/hủy/báo cáo số chuyến"| TRIP
+    OPS -->|"tra cứu giao dịch/báo cáo doanh thu"| PAY
 ```
 
 ---
 
 # 2. UBIQUITOUS LANGUAGE
 
-Mỗi Bounded Context có bộ ngôn ngữ riêng. Không dùng một định nghĩa chung cho toàn hệ thống nếu ý nghĩa nghiệp vụ khác nhau.
+Mỗi Bounded Context có bộ ngôn ngữ riêng. Cùng một khái niệm chỉ được hiểu theo phạm vi Context đang sử dụng.
 
 ## 2.1. BC01 – Account & Access
 
 | Thuật ngữ | Code Term | Ý nghĩa trong Context | Quy tắc sử dụng |
 |---|---|---|---|
-| Người dùng | `User` | Tài khoản có thể đăng nhập CAB System | Aggregate Root của Account Context |
-| Khách hàng | `CustomerAccount` / `CUSTOMER` | User sử dụng chức năng đặt xe | Không tạo bảng Customer riêng |
-| Tài khoản tài xế | `DriverAccount` / `DRIVER` | Credential đăng nhập của tài xế | Khác với entity `Driver` ở BC02 |
-| Nhân viên vận hành | `STAFF` | User có quyền vận hành | Dùng cho các API staff theo SRS |
-| Quản lý | `MANAGER` | User có quyền xem báo cáo | Không phải một service riêng |
-| Vai trò | `Role` | Quyền nghiệp vụ của User | CUSTOMER/DRIVER/STAFF/MANAGER |
-| Trạng thái tài khoản | `AccountStatus` | Tình trạng sử dụng tài khoản | Tập giá trị chi tiết theo SRS/API hiện tại |
-| Xác thực | `Authentication` | Xác minh danh tính người dùng | Mật khẩu chỉ lưu dạng hash |
-| Phân quyền | `Authorization` | Kiểm tra role được gọi chức năng nào | Thực thi ở endpoint/middleware |
-| Hồ sơ người dùng | `UserProfile` | `full_name`, `email`, `phone` | Account Service là owner |
+| Người dùng | `User` | Tài khoản có thể đăng nhập CAB System | Aggregate Root của BC01 |
+| Khách hàng | `CUSTOMER` | Role của User sử dụng dịch vụ đặt xe | Không đồng nghĩa Booking Customer entity riêng |
+| Tài khoản tài xế | `DRIVER` | User có quyền tài xế | Khác với entity `Driver` ở BC02 |
+| Nhân viên vận hành | `STAFF` | User có quyền vận hành | Không phải một service dữ liệu người dùng riêng |
+| Quản lý | `MANAGER` | User có quyền xem báo cáo | Chỉ là Role |
+| Xác thực | `Authentication` | Xác minh danh tính | Dùng email/password và token |
+| Phân quyền | `Authorization` | Kiểm tra quyền theo Role | Thực thi tại middleware/endpoint |
+| Trạng thái tài khoản | `AccountStatus` | Trạng thái sử dụng User | Do Account Service sở hữu |
 
 ## 2.2. BC02 – Driver & Vehicle
 
 | Thuật ngữ | Code Term | Ý nghĩa trong Context | Quy tắc sử dụng |
 |---|---|---|---|
-| Tài xế | `Driver` | Hồ sơ nghiệp vụ của tài xế | Không chứa password/role |
-| Mã tài khoản | `user_id` | User gắn với Driver | External Reference ID, không FK sang Account DB |
-| Phương tiện | `Vehicle` | Xe thuộc một Driver | `driver_id` là FK nội bộ trong Driver DB |
-| Loại xe | `VehicleType` | Loại phương tiện dùng để matching | MOTORBIKE/CAR theo API hiện tại |
-| Trạng thái sẵn sàng | `AvailabilityStatus` | Khả năng nhận chuyến của Driver | AVAILABLE/UNAVAILABLE |
-| Tài xế phù hợp | `EligibleDriver` | Driver AVAILABLE và có Vehicle đúng loại | Không tự thêm thuật toán xếp hạng |
-| Ứng viên tài xế | `DriverCandidate` | DTO trả cho Trip Service khi tìm tài xế | Không phải entity lưu DB |
+| Tài xế | `Driver` | Hồ sơ nghiệp vụ của tài xế | Không chứa password hoặc token |
+| Mã tài khoản | `user_id` | User tương ứng với Driver | External Reference ID |
+| Phương tiện | `Vehicle` | Xe thuộc Driver | Quan hệ nội bộ với Driver |
+| Loại xe | `VehicleType` | MOTORBIKE/CAR | Dùng để Dispatch lọc phù hợp |
+| Trạng thái sẵn sàng | `AvailabilityStatus` | AVAILABLE/UNAVAILABLE | Driver AVAILABLE mới được xét gán |
+| Phương tiện hoạt động | `ACTIVE` | Vehicle được phép dùng | Phải kết hợp với availability khi tìm tài xế |
+| Ứng viên tài xế | `DriverCandidate` | DTO trả cho Dispatch | Không phải entity lưu riêng |
 
-## 2.3. BC03 – Trip & Dispatch
-
-| Thuật ngữ | Code Term | Ý nghĩa trong Context | Quy tắc sử dụng |
-|---|---|---|---|
-| Yêu cầu đặt xe | `BookingRequest` | Input để tạo Trip | Không cần bảng Booking riêng trong Phase 1 |
-| Chuyến | `Trip` | Aggregate quản lý vòng đời một chuyến | Aggregate Root của BC03 |
-| Khách hàng của chuyến | `customer_id` | User đã tạo chuyến | External Reference ID tới Account Service |
-| Tài xế của chuyến | `driver_id` | Driver được gán cho chuyến | External Reference ID tới Driver Service |
-| Điểm đón | `PickupAddress` | Nơi bắt đầu chuyến | Thuộc Trip |
-| Điểm đến | `DestinationAddress` | Nơi kết thúc chuyến | Thuộc Trip |
-| Loại xe yêu cầu | `RequestedVehicleType` | Loại xe khách chọn | Dùng khi gọi Driver Service |
-| Gán tài xế | `DriverAssignment` | Hành vi gán `driver_id` vào Trip | Không tạo bảng Assignment riêng |
-| Trạng thái chuyến | `TripStatus` | Trạng thái vòng đời Trip | Phải theo đúng state transition |
-| Không có tài xế | `NO_DRIVER` | Matching thất bại | Kết thúc nhánh tìm tài xế |
-| Cước chuyến | `FareAmount` | Số tiền phải trả sau khi hoàn thành | Công thức chi tiết chưa tự suy diễn nếu SRS chưa chốt |
-| Hủy chuyến | `CancelTrip` | Chuyển Trip sang CANCELLED | Tuân theo quyền và chính sách trong SRS |
-| Đánh giá | `Rating` | Phản hồi sau chuyến | Chỉ sau COMPLETED; một Rating/Trip |
-
-## 2.4. BC04 – Payment
+## 2.3. BC03 – Booking
 
 | Thuật ngữ | Code Term | Ý nghĩa trong Context | Quy tắc sử dụng |
 |---|---|---|---|
-| Thanh toán | `Payment` | Aggregate ghi nhận giao dịch của một chuyến | Aggregate Root của BC04 |
-| Mã chuyến | `trip_id` | Chuyến được thanh toán | External Reference ID, không FK sang Trip DB |
-| Số tiền | `Amount` | Số tiền lấy từ `fare_amount` của Trip | Payment lưu bản ghi của giá trị khi thanh toán |
-| Phương thức thanh toán | `PaymentMethod` | Cách khách thanh toán | CASH/ELECTRONIC |
-| Trạng thái thanh toán | `PaymentStatus` | Trạng thái xử lý giao dịch | PENDING/SUCCESS/FAILED theo mô hình hiện tại |
-| Thanh toán tiền mặt | `CashPayment` | Giao dịch tiền mặt được hệ thống ghi nhận | Không gọi provider ngoài |
-| Thanh toán điện tử | `ElectronicPayment` | Giao dịch gửi tới bộ giả lập | Không lưu dữ liệu thẻ nhạy cảm |
-| Nhà cung cấp thanh toán giả lập | `MockPaymentProvider` | Actor ngoài trả kết quả giao dịch điện tử | Không phải CAB microservice |
-| Giao dịch thành công | `SuccessfulPayment` | Payment có trạng thái SUCCESS | Được dùng trong báo cáo doanh thu |
+| Yêu cầu đặt xe | `BookingRequest` | Yêu cầu do khách hàng gửi | Aggregate Root của BC03 |
+| Khách đặt xe | `customer_id` | User tạo yêu cầu | External Reference ID |
+| Điểm đón | `PickupAddress` | Nơi bắt đầu | Bắt buộc |
+| Điểm đến | `DestinationAddress` | Nơi kết thúc | Bắt buộc |
+| Loại xe yêu cầu | `RequestedVehicleType` | Loại xe khách chọn | MOTORBIKE/CAR |
+| Chuyến được tạo | `trip_id` | Trip tạo từ BookingRequest | External Reference ID tới BC05 |
+
+## 2.4. BC04 – Dispatch
+
+| Thuật ngữ | Code Term | Ý nghĩa trong Context | Quy tắc sử dụng |
+|---|---|---|---|
+| Điều phối | `Dispatch` | Quy trình tìm và gán Driver | Không quản lý vòng đời Trip |
+| Tài xế phù hợp | `EligibleDriver` | AVAILABLE và có Vehicle phù hợp | Dữ liệu lấy từ Driver Service |
+| Gán tài xế | `DriverAssignment` | Kết quả chọn Driver cho Trip | Aggregate Root của BC04 |
+| Tài xế được chọn | `driver_id` | Driver được gán | External Reference ID |
+| Chuyến cần gán | `trip_id` | Trip đang `SEARCHING_DRIVER` | External Reference ID |
+| Không có tài xế | `NO_DRIVER` | Không có ứng viên phù hợp | Gửi kết quả về Trip Service |
+| Phù hợp đầu tiên | `FirstEligibleDriver` | Ứng viên phù hợp đầu tiên | Không thêm AI/xếp hạng ngoài SRS |
+
+## 2.5. BC05 – Trip
+
+| Thuật ngữ | Code Term | Ý nghĩa trong Context | Quy tắc sử dụng |
+|---|---|---|---|
+| Chuyến | `Trip` | Vòng đời chuyến đi | Aggregate Root của BC05 |
+| Mã Booking | `booking_id` | Yêu cầu nguồn tạo Trip | External Reference ID |
+| Khách hàng của chuyến | `customer_id` | Người sở hữu chuyến | External Reference ID |
+| Tài xế của chuyến | `driver_id` | Driver được Dispatch gán | External Reference ID |
+| Trạng thái chuyến | `TripStatus` | Trạng thái vòng đời | Phải theo đúng trình tự |
+| Cước chuyến | `FareAmount` | Số tiền cuối cùng sau COMPLETED | Chưa tự suy diễn công thức khi SRS còn TBD |
+| Hủy chuyến | `CancelTrip` | Chuyển Trip sang CANCELLED | Theo chính sách hủy trong SRS |
+| Lịch sử chuyến | `TripHistory` | Danh sách Trip theo Customer | Là truy vấn, không phải entity riêng |
+
+## 2.6. BC06 – Payment
+
+| Thuật ngữ | Code Term | Ý nghĩa trong Context | Quy tắc sử dụng |
+|---|---|---|---|
+| Thanh toán | `Payment` | Giao dịch của một chuyến | Aggregate Root của BC06 |
+| Mã chuyến | `trip_id` | Trip được thanh toán | External Reference ID |
+| Số tiền | `Amount` | Giá trị lấy từ `fare_amount` của Trip | Không tự tính lại cước |
+| Phương thức | `PaymentMethod` | CASH/ELECTRONIC | Do khách hàng chọn |
+| Trạng thái | `PaymentStatus` | PENDING/SUCCESS/FAILED | Theo API hiện tại |
+| Thanh toán tiền mặt | `CashPayment` | Ghi nhận trực tiếp | Không gọi provider |
+| Thanh toán điện tử | `ElectronicPayment` | Giao dịch qua bộ giả lập | Không lưu dữ liệu thẻ nhạy cảm |
+| Nhà cung cấp giả lập | `MockPaymentProvider` | Hệ thống ngoài CAB | Không phải microservice nội bộ |
+
+## 2.7. BC07 – Rating
+
+| Thuật ngữ | Code Term | Ý nghĩa trong Context | Quy tắc sử dụng |
+|---|---|---|---|
+| Đánh giá | `Rating` | Phản hồi của khách sau chuyến | Aggregate Root của BC07 |
+| Điểm đánh giá | `Score` | Giá trị 1–5 | Bắt buộc |
+| Nhận xét | `Comment` | Nội dung tùy chọn | Không bắt buộc |
+| Chuyến được đánh giá | `trip_id` | Trip đã COMPLETED | External Reference ID |
+| Khách đánh giá | `customer_id` | Customer của Trip | External Reference ID |
+| Tài xế được đánh giá | `driver_id` | Driver của Trip | External Reference ID |
+| Đã đánh giá | `AlreadyRated` | Trip đã có Rating | Không cho tạo Rating thứ hai |
+
+## 2.8. BC08 – Operations & Reporting
+
+| Thuật ngữ | Code Term | Ý nghĩa trong Context | Quy tắc sử dụng |
+|---|---|---|---|
+| Thao tác vận hành | `OperationAction` | Hành động nghiệp vụ của STAFF cần lưu vết | Aggregate Root của BC08 |
+| Hủy chuyến sự cố | `IncidentCancellation` | Staff yêu cầu hủy Trip có lý do | Trip Service thực thi thay đổi |
+| Lý do xử lý | `ActionReason` | Lý do nghiệp vụ | Bắt buộc với FR28 |
+| Tra cứu vận hành | `OperationalLookup` | Query dữ liệu từ service sở hữu | Không sao chép ownership |
+| Báo cáo số chuyến | `TripCountReport` | Aggregate số lượng Trip | Lấy từ Trip Service |
+| Báo cáo doanh thu | `RevenueReport` | Aggregate doanh thu | Lấy từ Payment Service |
+| Nhân viên thực hiện | `staff_user_id` | User role STAFF | External Reference ID tới Account Service |
 
 ---
 
 # 3. API CỦA CÁC MICROSERVICE
 
-Các API dưới đây ưu tiên giữ cấu trúc đã có trong `API_document`. Endpoint `/internal/...` chỉ phục vụ giao tiếp giữa service sau khi tách database; chúng không tạo chức năng nghiệp vụ mới.
+## 3.1. Nguyên tắc tương thích `API_document`
 
-## 3.1. `account-service`
+Các public endpoint hiện có trong repository được giữ tối đa để không phá Swagger/Postman hiện tại.
+
+Có ba điểm cần lưu ý sau khi tách DDD:
+
+1. `04_trip.yaml` hiện đang gom **đặt xe + điều phối + vòng đời chuyến** trong một file. Sau khi tách BC03/BC04/BC05, public API vẫn có thể giữ `POST /trips`, nhưng request được `booking-service` điều phối nội bộ sang `trip-service` và `dispatch-service`.
+2. `07_staff.yaml` gom API theo actor STAFF. Sau khi tách microservice, `operations-service` giữ các endpoint `/staff/*` như một **back-office facade**, nhưng phải gọi service đang sở hữu dữ liệu thay vì đọc database của service khác.
+3. `08_reports.yaml` được đặt trong BC08 để giữ thiết kế gọn trong 7 tuần; báo cáo được tổng hợp qua API của Trip/Payment Service, không dùng database chung.
+
+## 3.2. `account-service`
 
 | Method | Endpoint | Chức năng | Actor/Service gọi | FR | Entity/Data |
 |---|---|---|---|---|---|
 | POST | `/api/v1/auth/register` | Đăng ký tài khoản khách hàng | Khách hàng | FR01 | User |
-| POST | `/api/v1/auth/login` | Đăng nhập | Customer/Driver/Staff/Manager | FR02, FR32 | User/Auth |
+| POST | `/api/v1/auth/login` | Đăng nhập | User | FR02, FR32 | User/Auth |
+| GET | `/api/v1/customers/me` | Xem hồ sơ hiện tại | Khách hàng | Hỗ trợ FR03 | User |
 | PUT | `/api/v1/customers/me` | Cập nhật thông tin cá nhân | Khách hàng | FR03 | User |
-| POST | `/api/v1/staff/drivers` | Tạo tài khoản tài xế | Nhân viên vận hành | FR04 | User; gọi Driver Service |
-| GET | `/api/v1/staff/customers` | Tra cứu khách hàng | Nhân viên vận hành | FR24 | User |
-| PUT | `/internal/users/{userId}/profile` | Cập nhật phần hồ sơ User từ Driver workflow | Driver Service | Hỗ trợ FR05 | User |
-| Middleware | `Authorization middleware` | Kiểm tra quyền theo role | Mọi request | FR33 | Token/Role |
+| POST | `/internal/accounts/drivers` | Tạo User role DRIVER từ Operations workflow | Operations Service | FR04 | User |
+| GET | `/internal/customers?keyword={keyword}` | Tra cứu khách hàng | Operations Service | Hỗ trợ FR24 | User |
+| POST | `/internal/auth/verify` | Xác thực token/service request khi cần | Các service | FR32, FR33 | Auth/Role |
 
-> Nếu `GET /customers/me` đang có trong API hiện tại thì có thể tiếp tục giữ làm API đọc hồ sơ; đây là API hỗ trợ, không phải Functional Requirement mới.
-
-## 3.2. `driver-service`
+## 3.3. `driver-service`
 
 | Method | Endpoint | Chức năng | Actor/Service gọi | FR | Entity/Data |
 |---|---|---|---|---|---|
-| PUT | `/api/v1/drivers/me` | Cập nhật hồ sơ tài xế | Tài xế | FR05 | Driver + User profile |
+| GET | `/api/v1/drivers/me` | Xem hồ sơ tài xế | Tài xế | Hỗ trợ FR05 | Driver |
+| PUT | `/api/v1/drivers/me` | Cập nhật hồ sơ tài xế | Tài xế | FR05 | Driver |
+| GET | `/api/v1/drivers/me/vehicle` | Xem phương tiện | Tài xế | Hỗ trợ FR06 | Vehicle |
 | PUT | `/api/v1/drivers/me/vehicle` | Tạo/cập nhật phương tiện | Tài xế | FR06 | Vehicle |
 | PUT | `/api/v1/drivers/me/availability` | Cập nhật trạng thái sẵn sàng | Tài xế | FR07 | Driver |
-| GET | `/api/v1/staff/drivers` | Tra cứu tài xế | Nhân viên vận hành | FR25 | Driver |
-| GET | `/api/v1/staff/vehicles` | Tra cứu phương tiện | Nhân viên vận hành | FR26 | Vehicle |
-| POST | `/internal/drivers` | Khởi tạo Driver từ `user_id` | Account Service | Hỗ trợ FR04 | Driver |
-| GET | `/internal/drivers/available?vehicle_type={type}` | Tìm tài xế AVAILABLE có loại xe phù hợp | Trip Service | FR09, FR10 | DriverCandidate |
-| GET | `/internal/drivers/{driverId}` | Lấy thông tin Driver/Vehicle tóm tắt | Trip Service | Hỗ trợ FR13 | Driver summary |
-| GET | `/internal/drivers/by-user/{userId}` | Resolve `driver_id` từ User đăng nhập | Trip Service | Hỗ trợ FR16 | Driver ID |
+| POST | `/internal/drivers` | Tạo hồ sơ Driver theo `user_id` | Account/Operations Service | Hỗ trợ FR04 | Driver |
+| GET | `/internal/drivers/available?vehicle_type={type}` | Trả Driver AVAILABLE có Vehicle phù hợp | Dispatch Service | Hỗ trợ FR09, FR10 | DriverCandidate |
+| GET | `/internal/drivers/search?keyword={keyword}` | Tra cứu tài xế | Operations Service | Hỗ trợ FR25 | Driver |
+| GET | `/internal/vehicles/search?keyword={keyword}` | Tra cứu phương tiện | Operations Service | Hỗ trợ FR26 | Vehicle |
 
-## 3.3. `trip-service`
+## 3.4. `booking-service`
 
 | Method | Endpoint | Chức năng | Actor/Service gọi | FR | Entity/Data |
 |---|---|---|---|---|---|
-| POST | `/api/v1/trips` | Tạo yêu cầu đặt xe và điều phối tự động | Khách hàng | FR08–FR12 | Trip |
+| POST | `/api/v1/trips` | Tiếp nhận yêu cầu đặt xe | Khách hàng | FR08 | BookingRequest |
+| POST | `/internal/bookings/{bookingId}/trip-link` | Ghi nhận `trip_id` được tạo | Trip Service | Hỗ trợ FR08 | BookingRequest |
+
+> Giữ endpoint `POST /trips` để tương thích `04_trip.yaml`. Về mặt triển khai, API Gateway hoặc router có thể chuyển POST này đến `booking-service`; các GET/PUT `/trips/...` chuyển đến `trip-service`.
+
+## 3.5. `dispatch-service`
+
+| Method | Endpoint | Chức năng | Actor/Service gọi | FR | Entity/Data |
+|---|---|---|---|---|---|
+| POST | `/internal/dispatch/assign` | Tìm và tự động gán tài xế cho Trip | Booking Service | FR09–FR12 | DriverAssignment |
+| GET | `/internal/dispatch/trips/{tripId}` | Lấy kết quả điều phối khi cần kiểm tra | Trip/Booking Service | Hỗ trợ FR09–FR12 | DriverAssignment |
+
+Dispatch Service sử dụng API Driver Service và Trip Service; không có public endpoint mới cho người dùng.
+
+## 3.6. `trip-service`
+
+| Method | Endpoint | Chức năng | Actor/Service gọi | FR | Entity/Data |
+|---|---|---|---|---|---|
+| POST | `/internal/trips` | Tạo Trip `SEARCHING_DRIVER` từ Booking | Booking Service | Hỗ trợ FR08 | Trip |
+| PUT | `/internal/trips/{tripId}/assignment` | Cập nhật `driver_id` hoặc `NO_DRIVER` | Dispatch Service | Hỗ trợ FR11, FR12 | Trip |
+| GET | `/api/v1/trips` | Xem lịch sử chuyến | Khách hàng | FR15 | Trip |
 | GET | `/api/v1/trips/{tripId}` | Theo dõi/xem chuyến | Khách hàng | FR13 | Trip |
 | PUT | `/api/v1/trips/{tripId}/cancel` | Hủy chuyến | Khách hàng | FR14 | Trip |
-| GET | `/api/v1/trips` | Xem lịch sử chuyến | Khách hàng | FR15 | Trip |
 | GET | `/api/v1/driver/trips` | Lấy chuyến được phân công | Tài xế | Hỗ trợ FR16 | Trip |
-| PUT | `/api/v1/driver/trips/{tripId}/status` | Cập nhật trạng thái chuyến; khi COMPLETED tính cước | Tài xế | FR16, FR17 | Trip |
-| POST | `/api/v1/trips/{tripId}/rating` | Đánh giá tài xế sau chuyến | Khách hàng | FR22, FR23 | Rating |
-| GET | `/api/v1/staff/trips` | Theo dõi/tra cứu chuyến | Nhân viên vận hành | FR27 | Trip |
-| PUT | `/api/v1/staff/trips/{tripId}/cancel` | Hủy chuyến gặp sự cố kèm lý do | Nhân viên vận hành | FR28 | Trip |
-| GET | `/api/v1/reports/trips` | Báo cáo số lượng chuyến | Quản lý | FR30 | Trip aggregate |
-| GET | `/internal/trips/{tripId}/payment-context` | Trả trạng thái, cước và customer cho Payment Service | Payment Service | Hỗ trợ FR18–FR21 | Trip payment context |
+| PUT | `/api/v1/driver/trips/{tripId}/status` | Cập nhật trạng thái chuyến | Tài xế | FR16, FR17 | Trip |
+| GET | `/internal/trips/{tripId}/payment-context` | Trả status + fare cho Payment | Payment Service | Hỗ trợ FR18–FR21 | Trip |
+| GET | `/internal/trips/{tripId}/rating-context` | Trả status + customer/driver cho Rating | Rating Service | Hỗ trợ FR22–FR23 | Trip |
+| GET | `/internal/trips/search` | Dữ liệu theo dõi chuyến | Operations Service | Hỗ trợ FR27 | Trip |
+| PUT | `/internal/trips/{tripId}/operations-cancel` | Hủy chuyến do sự cố | Operations Service | Hỗ trợ FR28 | Trip |
+| GET | `/internal/reports/trips` | Aggregate số lượng chuyến | Operations Service | Hỗ trợ FR30 | Trip aggregate |
 
-## 3.4. `payment-service`
+## 3.7. `payment-service`
 
 | Method | Endpoint | Chức năng | Actor/Service gọi | FR | Entity/Data |
 |---|---|---|---|---|---|
-| GET | `/api/v1/trips/{tripId}/payment` | Xem thông tin thanh toán của chuyến | Khách hàng/Staff theo quyền | Hỗ trợ FR18–FR21 | Payment |
-| POST | `/api/v1/trips/{tripId}/payment` | Chọn phương thức và tạo/ghi nhận thanh toán | Khách hàng | FR18–FR21 | Payment |
-| GET | `/api/v1/staff/payments` | Tra cứu giao dịch | Nhân viên vận hành | FR29 | Payment |
-| GET | `/api/v1/reports/revenue` | Báo cáo doanh thu | Quản lý | FR31 | Revenue aggregate |
+| GET | `/api/v1/trips/{tripId}/payment` | Xem thông tin thanh toán | Khách hàng | Hỗ trợ FR18–FR21 | Payment |
+| POST | `/api/v1/trips/{tripId}/payment` | Chọn phương thức và thanh toán | Khách hàng | FR18–FR21 | Payment |
+| GET | `/internal/payments/search` | Tra cứu giao dịch | Operations Service | Hỗ trợ FR29 | Payment |
+| GET | `/internal/reports/revenue` | Aggregate doanh thu | Operations Service | Hỗ trợ FR31 | Payment aggregate |
 
-## 3.5. API giao tiếp giữa Microservice
+## 3.8. `rating-service`
+
+| Method | Endpoint | Chức năng | Actor/Service gọi | FR | Entity/Data |
+|---|---|---|---|---|---|
+| POST | `/api/v1/trips/{tripId}/rating` | Đánh giá tài xế sau chuyến | Khách hàng | FR22, FR23 | Rating |
+| GET | `/internal/ratings/by-trip/{tripId}` | Kiểm tra Trip đã được đánh giá chưa | Rating Service nội bộ/kiểm thử | Hỗ trợ FR23 | Rating |
+
+## 3.9. `operations-service`
+
+| Method | Endpoint | Chức năng | Actor | FR | Service nguồn |
+|---|---|---|---|---|---|
+| POST | `/api/v1/staff/drivers` | Tạo tài khoản tài xế | STAFF | FR04 | Account + Driver |
+| GET | `/api/v1/staff/customers` | Tra cứu khách hàng | STAFF | FR24 | Account |
+| GET | `/api/v1/staff/drivers` | Tra cứu tài xế | STAFF | FR25 | Driver |
+| GET | `/api/v1/staff/vehicles` | Tra cứu phương tiện | STAFF | FR26 | Driver |
+| GET | `/api/v1/staff/trips` | Theo dõi chuyến | STAFF | FR27 | Trip |
+| PUT | `/api/v1/staff/trips/{tripId}/cancel` | Hủy chuyến gặp sự cố kèm lý do | STAFF | FR28 | Operations + Trip |
+| GET | `/api/v1/staff/payments` | Tra cứu giao dịch | STAFF | FR29 | Payment |
+| GET | `/api/v1/reports/trips` | Báo cáo số lượng chuyến | MANAGER | FR30 | Trip |
+| GET | `/api/v1/reports/revenue` | Báo cáo doanh thu | MANAGER | FR31 | Payment |
+
+## 3.10. API giao tiếp giữa Microservice
 
 | Service gọi | Service được gọi | Endpoint | Dữ liệu trao đổi | Mục đích |
 |---|---|---|---|---|
-| Account Service | Driver Service | `POST /internal/drivers` | `user_id` | Tạo Driver sau khi tạo User role DRIVER |
-| Driver Service | Account Service | `PUT /internal/users/{userId}/profile` | `full_name`, `phone` | Cập nhật dữ liệu hồ sơ do Account Service sở hữu |
-| Trip Service | Driver Service | `GET /internal/drivers/available?vehicle_type={type}` | vehicle type → driver candidates | Tìm tài xế sẵn sàng và đúng loại xe |
-| Trip Service | Driver Service | `GET /internal/drivers/{driverId}` | `driver_id` | Lấy thông tin cần hiển thị sau khi gán |
-| Trip Service | Driver Service | `GET /internal/drivers/by-user/{userId}` | `user_id` → `driver_id` | Kiểm tra tài xế cập nhật đúng Trip |
-| Payment Service | Trip Service | `GET /internal/trips/{tripId}/payment-context` | `trip_status`, `fare_amount`, `customer_id` | Kiểm tra điều kiện thanh toán và lấy số tiền |
-| Payment Service | Mock Payment Provider | API giả lập | amount + mã giao dịch kỹ thuật | Thực hiện FR20 và nhận kết quả điện tử |
-
-Quy tắc:
-
-- Giao tiếp service-to-service dùng REST/JSON đồng bộ.
-- Không đọc trực tiếp database của service khác.
-- Không tạo Foreign Key xuyên database.
-- Không dùng message broker trong phạm vi hiện tại.
+| Operations Service | Account Service | `POST /internal/accounts/drivers` | Thông tin tài khoản Driver | FR04 |
+| Account/Operations Service | Driver Service | `POST /internal/drivers` | `user_id` | Tạo hồ sơ Driver |
+| Booking Service | Trip Service | `POST /internal/trips` | customer, pickup, destination, vehicle type | Tạo Trip `SEARCHING_DRIVER` |
+| Booking Service | Dispatch Service | `POST /internal/dispatch/assign` | `trip_id`, `vehicle_type` | Bắt đầu điều phối |
+| Dispatch Service | Driver Service | `GET /internal/drivers/available?...` | vehicle type → DriverCandidate | FR09, FR10 |
+| Dispatch Service | Trip Service | `PUT /internal/trips/{tripId}/assignment` | `driver_id` hoặc `NO_DRIVER` | FR11, FR12 |
+| Payment Service | Trip Service | `GET /internal/trips/{tripId}/payment-context` | status, fare, customer | Kiểm tra điều kiện thanh toán |
+| Payment Service | Mock Provider | API giả lập | amount + transaction data | FR20, FR21 |
+| Rating Service | Trip Service | `GET /internal/trips/{tripId}/rating-context` | status, customer, driver | Kiểm tra điều kiện đánh giá |
+| Operations Service | Account Service | `GET /internal/customers` | keyword/filter | FR24 |
+| Operations Service | Driver Service | `GET /internal/drivers/search` | keyword/filter | FR25 |
+| Operations Service | Driver Service | `GET /internal/vehicles/search` | keyword/filter | FR26 |
+| Operations Service | Trip Service | `GET /internal/trips/search` | status/filter | FR27 |
+| Operations Service | Trip Service | `PUT /internal/trips/{tripId}/operations-cancel` | reason | FR28 |
+| Operations Service | Payment Service | `GET /internal/payments/search` | status/filter | FR29 |
+| Operations Service | Trip Service | `GET /internal/reports/trips` | report request | FR30 |
+| Operations Service | Payment Service | `GET /internal/reports/revenue` | report request | FR31 |
 
 ---
 
 # 4. ERD VÀ CƠ SỞ DỮ LIỆU CỦA TỪNG MICROSERVICE
 
-Phần này đi theo thứ tự:
+## 4.1. BC01 – `account-service`
 
-```text
-Domain Model → Data Model → Database Model → ERD
-```
-
-## 4.1. `account-service`
-
-### Domain Model
+### Domain/Data Model
 
 | Thành phần | Loại | Vai trò |
 |---|---|---|
-| `User` | Aggregate Root / Entity | Quản lý danh tính, credential, role và trạng thái tài khoản |
+| `User` | Aggregate Root / Entity | Quản lý tài khoản và credential |
 | `Role` | Value Object / Enum | CUSTOMER, DRIVER, STAFF, MANAGER |
-| `Email` | Value Object | Email đăng nhập, duy nhất |
-| `Phone` | Value Object | Số điện thoại, duy nhất |
-| `PasswordHash` | Value Object | Mật khẩu đã băm |
 | `AccountStatus` | Value Object | Trạng thái tài khoản |
+| `Email` | Value Object | Email duy nhất |
+| `Phone` | Value Object | Số điện thoại duy nhất |
 
-### Data Model
-
-| Entity | Thuộc tính chính | Quan hệ | Loại ID | Ghi chú |
-|---|---|---|---|---|
-| `User` | `user_id`, `full_name`, `email`, `phone`, `password_hash`, `role`, `status`, timestamps | Không cần quan hệ nội bộ khác | `user_id` nội bộ | Các service khác chỉ giữ ID tham chiếu ngoài |
-
-### Database Model – `users`
+### Bảng `users`
 
 | Column | Data Type | Constraint | Mô tả |
 |---|---|---|---|
-| `user_id` | BIGSERIAL | PK | ID User |
+| `user_id` | BIGSERIAL | PK | ID nội bộ |
 | `full_name` | VARCHAR(120) | NOT NULL | Họ tên |
-| `email` | VARCHAR(255) | NOT NULL, UNIQUE | Email đăng nhập |
+| `email` | VARCHAR(255) | NOT NULL, UNIQUE | Email |
 | `phone` | VARCHAR(20) | NOT NULL, UNIQUE | Số điện thoại |
 | `password_hash` | VARCHAR(255) | NOT NULL | Mật khẩu đã băm |
 | `role` | VARCHAR(20) | NOT NULL, CHECK | CUSTOMER/DRIVER/STAFF/MANAGER |
 | `status` | VARCHAR(30) | NOT NULL | Trạng thái tài khoản |
-| `created_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày tạo |
-| `updated_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày cập nhật |
-
-Index chính:
-
-```sql
-CREATE UNIQUE INDEX ux_users_email ON users(email);
-CREATE UNIQUE INDEX ux_users_phone ON users(phone);
-CREATE INDEX ix_users_role_status ON users(role, status);
-```
-
-### ERD
+| `created_at` | TIMESTAMP | NOT NULL | Ngày tạo |
+| `updated_at` | TIMESTAMP | NOT NULL | Ngày cập nhật |
 
 ```mermaid
 erDiagram
@@ -531,70 +726,50 @@ erDiagram
 
 ---
 
-## 4.2. `driver-service`
+## 4.2. BC02 – `driver-service`
 
-### Domain Model
+### Domain/Data Model
 
 | Thành phần | Loại | Vai trò |
 |---|---|---|
-| `Driver` | Aggregate Root / Entity | Quản lý hồ sơ nghiệp vụ và availability |
+| `Driver` | Aggregate Root / Entity | Hồ sơ nghiệp vụ và availability |
 | `Vehicle` | Entity | Phương tiện thuộc Driver |
-| `AvailabilityStatus` | Value Object / Enum | AVAILABLE/UNAVAILABLE |
-| `VehicleType` | Value Object / Enum | MOTORBIKE/CAR |
-| `DriverCandidate` | DTO | Dữ liệu trả cho Trip Service khi matching |
+| `AvailabilityStatus` | Value Object | AVAILABLE/UNAVAILABLE |
+| `VehicleType` | Value Object | MOTORBIKE/CAR |
 
-### Data Model
-
-| Entity | Thuộc tính chính | Quan hệ | Loại ID | Ghi chú |
-|---|---|---|---|---|
-| `Driver` | `driver_id`, `user_id`, `availability_status`, timestamps | 1-N Vehicle | `driver_id` nội bộ; `user_id` external | `user_id` không FK sang Account DB |
-| `Vehicle` | `vehicle_id`, `driver_id`, `vehicle_type`, `license_plate`, `vehicle_name`, `status`, timestamps | Thuộc Driver | `vehicle_id` nội bộ; `driver_id` internal FK | Cùng `driver_db` nên được phép tạo FK |
-
-### Database Model – `drivers`
+### Bảng `drivers`
 
 | Column | Data Type | Constraint | Mô tả |
 |---|---|---|---|
 | `driver_id` | BIGSERIAL | PK | ID Driver |
 | `user_id` | BIGINT | NOT NULL, UNIQUE | External Ref tới Account Service; không FK |
 | `availability_status` | VARCHAR(20) | NOT NULL, CHECK | AVAILABLE/UNAVAILABLE |
-| `created_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày tạo |
-| `updated_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày cập nhật |
+| `created_at` | TIMESTAMP | NOT NULL | Ngày tạo |
+| `updated_at` | TIMESTAMP | NOT NULL | Ngày cập nhật |
 
-### Database Model – `vehicles`
+### Bảng `vehicles`
 
 | Column | Data Type | Constraint | Mô tả |
 |---|---|---|---|
 | `vehicle_id` | BIGSERIAL | PK | ID Vehicle |
-| `driver_id` | BIGINT | NOT NULL, FK → `drivers.driver_id` | Internal FK |
+| `driver_id` | BIGINT | NOT NULL, FK → `drivers.driver_id` | **Internal FK** |
 | `vehicle_type` | VARCHAR(20) | NOT NULL, CHECK | MOTORBIKE/CAR |
 | `license_plate` | VARCHAR(30) | NOT NULL, UNIQUE | Biển số |
 | `vehicle_name` | VARCHAR(100) | NOT NULL | Tên xe |
-| `status` | VARCHAR(20) | NOT NULL, CHECK | Trạng thái Vehicle |
-| `created_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày tạo |
-| `updated_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày cập nhật |
-
-Index chính:
-
-```sql
-CREATE INDEX ix_drivers_availability ON drivers(availability_status);
-CREATE INDEX ix_vehicles_match ON vehicles(vehicle_type, status, driver_id);
-CREATE UNIQUE INDEX ux_vehicles_license_plate ON vehicles(license_plate);
-```
-
-### ERD
+| `status` | VARCHAR(20) | NOT NULL, CHECK | ACTIVE/INACTIVE |
+| `created_at` | TIMESTAMP | NOT NULL | Ngày tạo |
+| `updated_at` | TIMESTAMP | NOT NULL | Ngày cập nhật |
 
 ```mermaid
 erDiagram
     DRIVERS ||--o{ VEHICLES : owns
-
     DRIVERS {
         BIGINT driver_id PK
-        BIGINT user_id "External Ref -> account-service"
+        BIGINT user_id "External Ref"
         VARCHAR availability_status
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
-
     VEHICLES {
         BIGINT vehicle_id PK
         BIGINT driver_id FK
@@ -609,157 +784,162 @@ erDiagram
 
 ---
 
-## 4.3. `trip-service`
+## 4.3. BC03 – `booking-service`
 
-### Domain Model
+### Domain/Data Model
 
 | Thành phần | Loại | Vai trò |
 |---|---|---|
-| `Trip` | Aggregate Root | Quản lý toàn bộ vòng đời chuyến |
-| `Rating` | Entity | Đánh giá sau khi Trip hoàn thành |
-| `TripStatus` | Value Object / Enum | Kiểm soát state transition |
+| `BookingRequest` | Aggregate Root / Entity | Lưu yêu cầu đặt xe ban đầu |
 | `PickupAddress` | Value Object | Điểm đón |
 | `DestinationAddress` | Value Object | Điểm đến |
-| `RequestedVehicleType` | Value Object | Loại xe khách chọn |
-| `FareAmount` | Value Object | Số tiền phải trả |
+| `RequestedVehicleType` | Value Object | Loại xe yêu cầu |
 
-### Data Model
-
-| Entity | Thuộc tính chính | Quan hệ | Loại ID | Ghi chú |
-|---|---|---|---|---|
-| `Trip` | `trip_id`, `customer_id`, `driver_id`, pickup, destination, vehicle_type, status, fare, cancel data, timestamps | 1-0..1 Rating | `trip_id` nội bộ; customer/driver external | Không FK sang Account/Driver DB |
-| `Rating` | `rating_id`, `trip_id`, `customer_id`, `driver_id`, `score`, `comment`, `created_at` | Thuộc Trip | `trip_id` internal FK; customer/driver external | Một Rating/Trip |
-
-### Database Model – `trips`
+### Bảng `booking_requests`
 
 | Column | Data Type | Constraint | Mô tả |
 |---|---|---|---|
-| `trip_id` | BIGSERIAL | PK | ID Trip |
-| `customer_id` | BIGINT | NOT NULL | External Ref → Account Service |
-| `driver_id` | BIGINT | NULL | External Ref → Driver Service |
-| `pickup_address` | TEXT | NOT NULL | Điểm đón |
-| `destination_address` | TEXT | NOT NULL | Điểm đến |
+| `booking_id` | BIGSERIAL | PK | ID Booking nội bộ |
+| `customer_id` | BIGINT | NOT NULL | External Ref tới Account Service |
+| `trip_id` | BIGINT | NULL | External Ref tới Trip Service; không FK |
+| `pickup_address` | VARCHAR(255) | NOT NULL | Điểm đón |
+| `destination_address` | VARCHAR(255) | NOT NULL | Điểm đến |
 | `vehicle_type` | VARCHAR(20) | NOT NULL, CHECK | MOTORBIKE/CAR |
-| `trip_status` | VARCHAR(30) | NOT NULL, CHECK | SEARCHING_DRIVER, DRIVER_ASSIGNED, DRIVER_ARRIVED, PICKED_UP, IN_PROGRESS, COMPLETED, NO_DRIVER, CANCELLED |
-| `fare_amount` | NUMERIC(12,2) | NULL, CHECK `>= 0` | Cước chuyến |
-| `cancel_reason` | TEXT | NULL | Lý do hủy |
-| `created_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày tạo |
-| `completed_at` | TIMESTAMP | NULL | Ngày hoàn thành |
-| `cancelled_at` | TIMESTAMP | NULL | Ngày hủy |
-| `updated_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày cập nhật |
-
-### Database Model – `ratings`
-
-| Column | Data Type | Constraint | Mô tả |
-|---|---|---|---|
-| `rating_id` | BIGSERIAL | PK | ID Rating |
-| `trip_id` | BIGINT | NOT NULL, FK → `trips.trip_id`, UNIQUE | Internal FK; một Rating/Trip |
-| `customer_id` | BIGINT | NOT NULL | External Ref → Account Service |
-| `driver_id` | BIGINT | NOT NULL | External Ref → Driver Service |
-| `score` | SMALLINT | NOT NULL, CHECK 1..5 | Điểm đánh giá |
-| `comment` | TEXT | NULL | Nhận xét |
-| `created_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày đánh giá |
-
-Index chính:
-
-```sql
-CREATE INDEX ix_trips_customer_history
-    ON trips(customer_id, created_at DESC);
-
-CREATE INDEX ix_trips_driver_active
-    ON trips(driver_id, trip_status);
-
-CREATE INDEX ix_trips_status
-    ON trips(trip_status);
-
-CREATE UNIQUE INDEX ux_ratings_trip
-    ON ratings(trip_id);
-```
-
-### ERD
+| `created_at` | TIMESTAMP | NOT NULL | Thời điểm gửi yêu cầu |
 
 ```mermaid
 erDiagram
-    TRIPS ||--o| RATINGS : receives
-
-    TRIPS {
-        BIGINT trip_id PK
-        BIGINT customer_id "External Ref -> account-service"
-        BIGINT driver_id "External Ref -> driver-service"
-        TEXT pickup_address
-        TEXT destination_address
+    BOOKING_REQUESTS {
+        BIGINT booking_id PK
+        BIGINT customer_id "External Ref"
+        BIGINT trip_id "External Ref"
+        VARCHAR pickup_address
+        VARCHAR destination_address
         VARCHAR vehicle_type
-        VARCHAR trip_status
-        DECIMAL fare_amount
-        TEXT cancel_reason
-        TIMESTAMP created_at
-        TIMESTAMP completed_at
-        TIMESTAMP cancelled_at
-        TIMESTAMP updated_at
-    }
-
-    RATINGS {
-        BIGINT rating_id PK
-        BIGINT trip_id FK
-        BIGINT customer_id "External Ref -> account-service"
-        BIGINT driver_id "External Ref -> driver-service"
-        SMALLINT score
-        TEXT comment
         TIMESTAMP created_at
     }
 ```
 
 ---
 
-## 4.4. `payment-service`
+## 4.4. BC04 – `dispatch-service`
 
-### Domain Model
+### Domain/Data Model
 
 | Thành phần | Loại | Vai trò |
 |---|---|---|
-| `Payment` | Aggregate Root | Quản lý một giao dịch thanh toán |
+| `DriverAssignment` | Aggregate Root / Entity | Kết quả điều phối một Trip |
+| `AssignmentStatus` | Value Object | ASSIGNED/NO_DRIVER |
+| `DriverCandidate` | DTO | Dữ liệu ứng viên lấy từ Driver Service |
+
+### Bảng `driver_assignments`
+
+| Column | Data Type | Constraint | Mô tả |
+|---|---|---|---|
+| `assignment_id` | BIGSERIAL | PK | ID lần điều phối |
+| `trip_id` | BIGINT | NOT NULL | External Ref tới Trip Service |
+| `driver_id` | BIGINT | NULL | External Ref tới Driver Service |
+| `vehicle_id` | BIGINT | NULL | External Ref tới Driver Service |
+| `assignment_status` | VARCHAR(20) | NOT NULL, CHECK | ASSIGNED/NO_DRIVER |
+| `assigned_at` | TIMESTAMP | NOT NULL | Thời điểm xử lý |
+
+```mermaid
+erDiagram
+    DRIVER_ASSIGNMENTS {
+        BIGINT assignment_id PK
+        BIGINT trip_id "External Ref"
+        BIGINT driver_id "External Ref"
+        BIGINT vehicle_id "External Ref"
+        VARCHAR assignment_status
+        TIMESTAMP assigned_at
+    }
+```
+
+> Không vẽ quan hệ tới `trip_db` hoặc `driver_db` vì đây là External Reference ID, không phải Foreign Key.
+
+---
+
+## 4.5. BC05 – `trip-service`
+
+### Domain/Data Model
+
+| Thành phần | Loại | Vai trò |
+|---|---|---|
+| `Trip` | Aggregate Root / Entity | Quản lý toàn bộ vòng đời chuyến |
+| `TripStatus` | Value Object / Enum | Trạng thái Trip |
+| `FareAmount` | Value Object | Cước sau khi hoàn thành |
+| `CancelReason` | Value Object | Lý do hủy nếu có |
+
+### Bảng `trips`
+
+| Column | Data Type | Constraint | Mô tả |
+|---|---|---|---|
+| `trip_id` | BIGSERIAL | PK | ID Trip |
+| `booking_id` | BIGINT | NULL | External Ref tới Booking Service |
+| `customer_id` | BIGINT | NOT NULL | External Ref tới Account Service |
+| `driver_id` | BIGINT | NULL | External Ref tới Driver Service |
+| `pickup_address` | VARCHAR(255) | NOT NULL | Điểm đón |
+| `destination_address` | VARCHAR(255) | NOT NULL | Điểm đến |
+| `vehicle_type` | VARCHAR(20) | NOT NULL | Loại xe |
+| `trip_status` | VARCHAR(30) | NOT NULL, CHECK | Trạng thái Trip |
+| `fare_amount` | NUMERIC(12,2) | NULL, CHECK >= 0 | Cước sau COMPLETED |
+| `cancel_reason` | VARCHAR(500) | NULL | Lý do hủy |
+| `created_at` | TIMESTAMP | NOT NULL | Ngày tạo |
+| `updated_at` | TIMESTAMP | NOT NULL | Ngày cập nhật |
+
+```mermaid
+erDiagram
+    TRIPS {
+        BIGINT trip_id PK
+        BIGINT booking_id "External Ref"
+        BIGINT customer_id "External Ref"
+        BIGINT driver_id "External Ref"
+        VARCHAR pickup_address
+        VARCHAR destination_address
+        VARCHAR vehicle_type
+        VARCHAR trip_status
+        DECIMAL fare_amount
+        VARCHAR cancel_reason
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+```
+
+---
+
+## 4.6. BC06 – `payment-service`
+
+### Domain/Data Model
+
+| Thành phần | Loại | Vai trò |
+|---|---|---|
+| `Payment` | Aggregate Root / Entity | Giao dịch thanh toán |
 | `PaymentMethod` | Value Object / Enum | CASH/ELECTRONIC |
 | `PaymentStatus` | Value Object / Enum | PENDING/SUCCESS/FAILED |
 | `Amount` | Value Object | Số tiền thanh toán |
 
-### Data Model
-
-| Entity | Thuộc tính chính | Quan hệ | Loại ID | Ghi chú |
-|---|---|---|---|---|
-| `Payment` | `payment_id`, `trip_id`, `amount`, `payment_method`, `payment_status`, timestamps | Không FK sang Trip DB | `payment_id` nội bộ; `trip_id` external | Trip Service là owner của Trip |
-
-### Database Model – `payments`
+### Bảng `payments`
 
 | Column | Data Type | Constraint | Mô tả |
 |---|---|---|---|
 | `payment_id` | BIGSERIAL | PK | ID Payment |
-| `trip_id` | BIGINT | NOT NULL | External Ref → Trip Service; không FK |
-| `amount` | NUMERIC(12,2) | NOT NULL, CHECK `>= 0` | Số tiền thanh toán |
+| `trip_id` | BIGINT | NOT NULL | External Ref tới Trip Service; không FK |
+| `amount` | NUMERIC(12,2) | NOT NULL, CHECK > 0 | Số tiền |
 | `payment_method` | VARCHAR(20) | NOT NULL, CHECK | CASH/ELECTRONIC |
 | `payment_status` | VARCHAR(20) | NOT NULL, CHECK | PENDING/SUCCESS/FAILED |
-| `created_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày tạo |
-| `updated_at` | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Ngày cập nhật |
-
-Không đặt `UNIQUE(trip_id)` ở giai đoạn này vì chính sách retry khi thanh toán thất bại chưa được chốt hoàn toàn; không nên khóa thiết kế trước yêu cầu nghiệp vụ.
-
-Index chính:
-
-```sql
-CREATE INDEX ix_payments_trip_id ON payments(trip_id);
-CREATE INDEX ix_payments_status_created
-    ON payments(payment_status, created_at);
-```
-
-### ERD
+| `provider_transaction_id` | VARCHAR(120) | NULL | Mã giao dịch từ bộ giả lập nếu có |
+| `created_at` | TIMESTAMP | NOT NULL | Ngày tạo |
+| `updated_at` | TIMESTAMP | NOT NULL | Ngày cập nhật |
 
 ```mermaid
 erDiagram
     PAYMENTS {
         BIGINT payment_id PK
-        BIGINT trip_id "External Ref -> trip-service"
+        BIGINT trip_id "External Ref"
         DECIMAL amount
         VARCHAR payment_method
         VARCHAR payment_status
+        VARCHAR provider_transaction_id
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
@@ -767,157 +947,234 @@ erDiagram
 
 ---
 
-## 4.5. Quy tắc Internal FK và External Reference ID
+## 4.7. BC07 – `rating-service`
 
-| Vị trí | Cột | Loại | Có FK database? | Service sở hữu dữ liệu đích |
-|---|---|---|---|---|
-| `driver_db.vehicles` | `driver_id` | Internal ID | Có | Driver Service |
-| `driver_db.drivers` | `user_id` | External Reference ID | **Không** | Account Service |
-| `trip_db.trips` | `customer_id` | External Reference ID | **Không** | Account Service |
-| `trip_db.trips` | `driver_id` | External Reference ID | **Không** | Driver Service |
-| `trip_db.ratings` | `trip_id` | Internal ID | Có | Trip Service |
-| `trip_db.ratings` | `customer_id` | External Reference ID | **Không** | Account Service |
-| `trip_db.ratings` | `driver_id` | External Reference ID | **Không** | Driver Service |
-| `payment_db.payments` | `trip_id` | External Reference ID | **Không** | Trip Service |
+### Domain/Data Model
 
-Ví dụ đúng:
+| Thành phần | Loại | Vai trò |
+|---|---|---|
+| `Rating` | Aggregate Root / Entity | Đánh giá tài xế sau Trip |
+| `Score` | Value Object | Điểm 1–5 |
+| `Comment` | Value Object | Nhận xét tùy chọn |
+
+### Bảng `ratings`
+
+| Column | Data Type | Constraint | Mô tả |
+|---|---|---|---|
+| `rating_id` | BIGSERIAL | PK | ID Rating |
+| `trip_id` | BIGINT | NOT NULL, UNIQUE | External Ref tới Trip Service; một Rating/Trip |
+| `customer_id` | BIGINT | NOT NULL | External Ref tới Account Service |
+| `driver_id` | BIGINT | NOT NULL | External Ref tới Driver Service |
+| `score` | SMALLINT | NOT NULL, CHECK 1–5 | Điểm đánh giá |
+| `comment` | VARCHAR(1000) | NULL | Nhận xét |
+| `created_at` | TIMESTAMP | NOT NULL | Ngày đánh giá |
+
+```mermaid
+erDiagram
+    RATINGS {
+        BIGINT rating_id PK
+        BIGINT trip_id UK "External Ref"
+        BIGINT customer_id "External Ref"
+        BIGINT driver_id "External Ref"
+        SMALLINT score
+        VARCHAR comment
+        TIMESTAMP created_at
+    }
+```
+
+---
+
+## 4.8. BC08 – `operations-service`
+
+### Domain/Data Model
+
+| Thành phần | Loại | Vai trò |
+|---|---|---|
+| `OperationAction` | Aggregate Root / Entity | Lưu thao tác vận hành cần truy vết |
+| `ActionType` | Value Object / Enum | Ví dụ `CANCEL_INCIDENT_TRIP` |
+| `ActionReason` | Value Object | Lý do xử lý |
+| `TripCountReport` | Read Model | Kết quả tổng hợp từ Trip Service |
+| `RevenueReport` | Read Model | Kết quả tổng hợp từ Payment Service |
+
+### Bảng `operation_actions`
+
+| Column | Data Type | Constraint | Mô tả |
+|---|---|---|---|
+| `operation_action_id` | BIGSERIAL | PK | ID thao tác |
+| `staff_user_id` | BIGINT | NOT NULL | External Ref tới Account Service |
+| `target_type` | VARCHAR(30) | NOT NULL | Loại đối tượng được xử lý |
+| `target_id` | BIGINT | NOT NULL | External Ref tới đối tượng nguồn |
+| `action_type` | VARCHAR(40) | NOT NULL | Loại hành động |
+| `reason` | VARCHAR(500) | NULL | Lý do; bắt buộc với hủy chuyến sự cố |
+| `created_at` | TIMESTAMP | NOT NULL | Thời điểm thao tác |
+
+```mermaid
+erDiagram
+    OPERATION_ACTIONS {
+        BIGINT operation_action_id PK
+        BIGINT staff_user_id "External Ref"
+        VARCHAR target_type
+        BIGINT target_id "External Ref"
+        VARCHAR action_type
+        VARCHAR reason
+        TIMESTAMP created_at
+    }
+```
+
+### Lưu ý về Report
+
+`TripCountReport` và `RevenueReport` là **Read Model tạo theo yêu cầu**, không cần bảng riêng trong phiên bản 7 tuần:
+
+```text
+operations-service
+    ├── gọi trip-service    → total_trips
+    └── gọi payment-service → total_revenue
+```
+
+Như vậy không tạo database dùng chung và không sao chép dữ liệu nghiệp vụ không cần thiết.
+
+---
+
+## 4.9. Internal FK và External Reference ID
+
+### Internal FK hợp lệ
+
+```text
+driver_db
+├── drivers
+└── vehicles
+      └── vehicles.driver_id
+          FK → drivers.driver_id
+```
+
+Vì `drivers` và `vehicles` đều thuộc `driver-service` và cùng `driver_db`.
+
+### External Reference – không được tạo FK
+
+Ví dụ:
 
 ```text
 trip_db.trips.driver_id
-        │
-        │ External Reference ID
-        ▼
-   Trip Service
-        │ REST API
-        ▼
-  Driver Service
-        │
-        ▼
- driver_db.drivers
 ```
 
-Không được tạo:
+không được tạo:
 
 ```text
-trip_db.trips.driver_id
-    FOREIGN KEY REFERENCES driver_db.drivers(driver_id)
+FK → driver_db.drivers.driver_id
 ```
+
+Khi Trip Service cần thông tin tài xế:
+
+```text
+trip-service
+    ↓ REST API
+GET driver-service/internal/drivers/{driverId}
+    ↓
+driver-service đọc driver_db
+    ↓
+trả Driver DTO
+```
+
+Quy tắc này áp dụng tương tự cho:
+
+- `booking_db.booking_requests.customer_id`
+- `booking_db.booking_requests.trip_id`
+- `dispatch_db.driver_assignments.trip_id`
+- `dispatch_db.driver_assignments.driver_id`
+- `trip_db.trips.customer_id`
+- `trip_db.trips.driver_id`
+- `payment_db.payments.trip_id`
+- `rating_db.ratings.trip_id`
+- `rating_db.ratings.customer_id`
+- `rating_db.ratings.driver_id`
+- `operations_db.operation_actions.staff_user_id`
+- `operations_db.operation_actions.target_id`
 
 ---
 
 # 5. PHÂN TÍCH VÀ LỰA CHỌN DATABASE TYPE
 
-Không chọn DBMS trước. Việc lựa chọn được thực hiện sau khi đã có Domain Model, Data Model và ERD ở mục 4.
+## 5.1. Phân tích đặc điểm dữ liệu
 
-## 5.1. `account-service`
+| Microservice | Structure | Relationship / Integrity | Transaction & Consistency | Access Pattern | Persistence / Volume | Nhận xét |
+|---|---|---|---|---|---|---|
+| `account-service` | Cấu trúc cố định | UNIQUE email/phone, role/status rõ | Cần consistency cao khi tạo và đăng nhập | Tra theo email, user_id | Lưu lâu dài, volume vừa | Dữ liệu tài khoản chặt chẽ |
+| `driver-service` | Cấu trúc rõ | Driver–Vehicle có quan hệ nội bộ 1-N | Cần đảm bảo Vehicle thuộc Driver đúng | Đọc hồ sơ, lọc availability/type | Lưu lâu dài, cập nhật thường xuyên | Relational phù hợp |
+| `booking-service` | Cấu trúc rõ | Ít quan hệ nội bộ, nhiều External ID | Cần ghi nhận request chính xác | Chủ yếu INSERT/GET theo booking/customer | Volume tăng theo số lần đặt | Không có nhu cầu schema document linh hoạt |
+| `dispatch-service` | Cấu trúc nhỏ, rõ | Liên kết logic trip/driver qua External ID | Cần ghi nhận kết quả assignment nhất quán | Ghi/đọc theo trip_id | Volume tương đương số lần điều phối | Redis có thể nhanh nhưng không cần thiết ở demo; cần persistence tốt hơn |
+| `trip-service` | Cấu trúc rõ | Nhiều business rule về state transition | Consistency cao khi cập nhật trạng thái/cước | Đọc theo trip/customer/driver/status | Dữ liệu nghiệp vụ quan trọng, lưu lâu dài | PostgreSQL phù hợp nhất |
+| `payment-service` | Cấu trúc giao dịch | Transaction/status chặt chẽ | Yêu cầu consistency rất cao | Tra theo trip/status, tổng hợp doanh thu | Lưu lâu dài | Relational bắt buộc ưu tiên |
+| `rating-service` | Cấu trúc đơn giản | UNIQUE trip, CHECK score 1–5 | Cần chống đánh giá trùng | INSERT sau chuyến, đọc theo trip/driver | Lưu lâu dài, volume vừa | PostgreSQL đơn giản và đủ |
+| `operations-service` | Cấu trúc log thao tác rõ | External ID, không JOIN xuyên DB | Ghi thao tác FR28 cần bền vững | Chủ yếu gọi API khác + ghi action | Volume thấp/vừa | Không cần MongoDB/Redis |
 
-| Tiêu chí | Phân tích |
-|---|---|
-| Structure | User có schema rõ và ổn định |
-| Relationship | Ít quan hệ nhưng có nhiều ràng buộc dữ liệu |
-| Integrity | Cao; email/phone phải duy nhất |
-| Transaction | Có, đặc biệt khi tạo/cập nhật tài khoản |
-| Consistency | Cao vì liên quan xác thực và role |
-| Query | Chủ yếu tìm theo email, phone, role, keyword |
-| Flexibility | Không cần schema linh hoạt |
-| Read Speed | Cần nhanh nhưng index quan hệ đáp ứng đủ |
-| Persistence | Bắt buộc lưu lâu dài |
-| Temporary Data | Không phải dữ liệu tạm |
-| Volume | Trung bình trong phạm vi đồ án |
-| Access Pattern | Đọc theo ID/email/phone; ghi khi đăng ký/cập nhật |
-
-**Lựa chọn:** Relational Database → **PostgreSQL** → `account_db`.
-
-**Lý do:** dữ liệu tài khoản có cấu trúc rõ, cần UNIQUE, CHECK, consistency và persistence. MongoDB không mang lại lợi ích rõ ràng; Redis không phù hợp làm nguồn dữ liệu chính cho tài khoản.
-
----
-
-## 5.2. `driver-service`
-
-| Tiêu chí | Phân tích |
-|---|---|
-| Structure | Driver và Vehicle có schema rõ |
-| Relationship | Có quan hệ 1-N Driver–Vehicle |
-| Integrity | Cần bảo đảm Vehicle thuộc Driver và biển số không trùng |
-| Transaction | Có khi tạo/cập nhật dữ liệu |
-| Consistency | Cần nhất quán giữa Driver và Vehicle |
-| Query | Lọc nhiều theo availability và vehicle type |
-| Flexibility | Không cần document linh hoạt |
-| Read Speed | Matching cần nhanh nhưng có thể giải quyết bằng index |
-| Persistence | Driver/Vehicle cần lưu lâu dài |
-| Temporary Data | Availability thay đổi thường xuyên nhưng vẫn là trạng thái nghiệp vụ cần lưu |
-| Volume | Trung bình trong phạm vi đồ án |
-| Access Pattern | Cập nhật availability; đọc theo driverId; lọc theo status/type |
-
-**Lựa chọn:** Relational Database → **PostgreSQL** → `driver_db`.
-
-**Lý do:** Driver–Vehicle có quan hệ rõ và cần Internal FK/UNIQUE. Với quy mô Phase 1, PostgreSQL + index đủ nhanh cho matching; chưa cần Redis và không có lý do dùng MongoDB.
-
----
-
-## 5.3. `trip-service`
-
-| Tiêu chí | Phân tích |
-|---|---|
-| Structure | Trip và Rating có schema rõ |
-| Relationship | Có quan hệ nội bộ Trip–Rating |
-| Integrity | Cao; TripStatus phải đúng trình tự và một Rating/Trip |
-| Transaction | Cần khi cập nhật trạng thái, hoàn thành và tính cước |
-| Consistency | Cao vì Trip là dữ liệu nghiệp vụ cốt lõi |
-| Query | Lịch sử theo customer, chuyến theo driver/status, báo cáo số chuyến |
-| Flexibility | Không yêu cầu schema linh hoạt |
-| Read Speed | Cần nhanh cho theo dõi chuyến; index là đủ trong scope hiện tại |
-| Persistence | Bắt buộc lưu lịch sử chuyến |
-| Temporary Data | Không phải dữ liệu tạm |
-| Volume | Có thể tăng nhanh nhưng vẫn trong mức PostgreSQL xử lý tốt cho đồ án |
-| Access Pattern | Ghi nhiều khi state thay đổi; đọc lịch sử và trạng thái hiện tại |
-
-**Lựa chọn:** Relational Database → **PostgreSQL** → `trip_db`.
-
-**Lý do:** Trip có state transition chặt, cần transaction, consistency, lịch sử lâu dài và FK nội bộ Trip–Rating. MongoDB không tạo lợi ích đủ lớn; Redis không thích hợp làm nguồn lưu Trip bền vững. GPS realtime liên tục nằm ngoài phạm vi nên chưa có lý do thêm Redis/time-series store.
-
----
-
-## 5.4. `payment-service`
-
-| Tiêu chí | Phân tích |
-|---|---|
-| Structure | Payment có schema cố định |
-| Relationship | Ít quan hệ nội bộ; `trip_id` là external reference |
-| Integrity | Rất cao vì là dữ liệu giao dịch |
-| Transaction | Cần để ghi nhận kết quả thanh toán chính xác |
-| Consistency | Cao |
-| Query | Tra cứu theo trip/status và tổng hợp doanh thu |
-| Flexibility | Không cần schema document linh hoạt |
-| Read Speed | Cần ổn định, không yêu cầu cache chuyên biệt |
-| Persistence | Bắt buộc lưu lâu dài |
-| Temporary Data | PENDING là trạng thái nghiệp vụ, không phải cache tạm |
-| Volume | Trung bình trong phạm vi đồ án |
-| Access Pattern | Tạo giao dịch, cập nhật status, tra cứu và aggregate doanh thu |
-
-**Lựa chọn:** Relational Database → **PostgreSQL** → `payment_db`.
-
-**Lý do:** Payment là dữ liệu giao dịch cần consistency, transaction và persistence. PostgreSQL phù hợp để bảo đảm constraint và tổng hợp doanh thu chính xác. MongoDB/Redis không có ưu thế rõ trong Data Model hiện tại.
-
----
-
-## 5.5. Bảng tổng hợp Database
+## 5.2. Bảng lựa chọn Database
 
 | Microservice | Đặc điểm dữ liệu | Yêu cầu kỹ thuật | Loại DB | DBMS | Database Name | Lý do lựa chọn |
 |---|---|---|---|---|---|---|
-| `account-service` | User có schema rõ, email/phone unique, role quan trọng | Integrity, uniqueness, transaction, persistence | Relational | PostgreSQL | `account_db` | Cần constraint và consistency cao cho tài khoản |
-| `driver-service` | Driver–Vehicle có quan hệ nội bộ; matching theo status/type | Internal FK, index, persistence | Relational | PostgreSQL | `driver_db` | Quan hệ rõ; PostgreSQL + index đáp ứng matching trong Phase 1 |
-| `trip-service` | Dữ liệu vòng đời chuyến, state transition, history, Rating | Transaction, consistency, query lịch sử | Relational | PostgreSQL | `trip_db` | Core transactional data, cần kiểm soát trạng thái và lưu bền vững |
-| `payment-service` | Giao dịch amount/method/status | Transaction, consistency, aggregate revenue | Relational | PostgreSQL | `payment_db` | Giao dịch cần chính xác và lưu lâu dài |
+| `account-service` | User có schema cố định, email/phone duy nhất | Integrity, unique constraint, consistency | Relational | **PostgreSQL** | `account_db` | Cần ràng buộc UNIQUE và dữ liệu tài khoản phải chính xác, bền vững |
+| `driver-service` | Driver và Vehicle có quan hệ nội bộ | FK nội bộ, lọc availability/type, persistence | Relational | **PostgreSQL** | `driver_db` | Có quan hệ 1-N Driver–Vehicle và cần ràng buộc dữ liệu rõ |
+| `booking-service` | Booking request có trường cố định | Lưu bền vững, truy vết theo customer/trip | Relational | **PostgreSQL** | `booking_db` | Dữ liệu có cấu trúc, không cần schema linh hoạt kiểu document |
+| `dispatch-service` | Assignment gồm trip/driver/vehicle/status | Cần kết quả điều phối có thể truy vết | Relational | **PostgreSQL** | `dispatch_db` | Redis không cần thiết vì chưa có yêu cầu throughput cực cao; PostgreSQL giúp lưu kết quả assignment bền vững |
+| `trip-service` | Trip có state machine và cước | Consistency, transaction, query lịch sử | Relational | **PostgreSQL** | `trip_db` | Trạng thái Trip phải cập nhật đúng trình tự và dữ liệu phải lưu lâu dài |
+| `payment-service` | Dữ liệu giao dịch có cấu trúc | Transaction và consistency cao | Relational | **PostgreSQL** | `payment_db` | Payment cần độ chính xác và toàn vẹn cao, phù hợp ACID |
+| `rating-service` | Rating đơn giản nhưng có constraint | UNIQUE trip, CHECK score | Relational | **PostgreSQL** | `rating_db` | Constraint rõ ràng, không cần MongoDB |
+| `operations-service` | Action log có schema rõ; report đọc từ API | Persistence cho thao tác; query đơn giản | Relational | **PostgreSQL** | `operations_db` | Dữ liệu vận hành cần lưu bền vững, chưa có nhu cầu document/caching đặc biệt |
 
-## 5.6. Vì sao chưa dùng MongoDB hoặc Redis?
+## 5.3. Vì sao không dùng MongoDB trong phiên bản hiện tại?
 
-- Không Bounded Context nào hiện có document schema biến đổi mạnh đến mức MongoDB mang lại lợi ích rõ ràng.
-- Dữ liệu nghiệp vụ chính đều cần lưu bền vững và có ràng buộc rõ.
-- Matching tài xế chỉ cần lọc theo `availability_status` và `vehicle_type`; PostgreSQL + index đủ cho phạm vi 7 tuần.
-- Theo dõi GPS liên tục nằm ngoài scope nên chưa cần Redis cho realtime location.
-- Redis có thể được bổ sung sau này làm cache nếu có yêu cầu hiệu năng thực tế, nhưng không nên thêm chỉ để kiến trúc có nhiều loại database.
-- Dùng cùng PostgreSQL cho bốn service **không vi phạm microservice**, vì mỗi service vẫn sở hữu database riêng và không truy cập DB của service khác.
+Không có Context nào có dữ liệu document thay đổi cấu trúc thường xuyên đến mức MongoDB mang lại lợi ích rõ ràng. Các entity hiện tại đều có trường tương đối cố định và nhiều rule/constraint có thể biểu diễn tốt bằng PostgreSQL.
+
+```text
+Schema rõ + constraint rõ + cần persistence
+→ PostgreSQL phù hợp hơn MongoDB trong đồ án hiện tại.
+```
+
+## 5.4. Vì sao chưa dùng Redis?
+
+Dispatch và trạng thái Driver có nhu cầu đọc nhanh, nhưng SRS phiên bản 7 tuần không đặt yêu cầu throughput cực cao, cache phân tán hoặc trạng thái tạm thời ở mức bắt buộc.
+
+```text
+Có thể tối ưu bằng Redis ở Phase 2
+nhưng Phase 1 chưa có lý do đủ mạnh để thêm Redis.
+```
+
+Dùng Redis ngay lúc này sẽ làm tăng số công nghệ phải cài đặt, quản lý và demo mà không giải quyết một yêu cầu bắt buộc trong SRS.
+
+---
+
+# 6. BẢNG TỔNG HỢP KIẾN TRÚC
+
+> Phần này chỉ là bảng kết luận, không phải nội dung thiết kế thứ 6. Năm nội dung chính vẫn là: Bounded Context → Ubiquitous Language → API → ERD/CSDL → Database Type.
+
+| Bounded Context | Microservice | Entity chính | Database | Loại DB | API chính | FR |
+|---|---|---|---|---|---|---|
+| BC01 Account & Access | `account-service` | User | `account_db` | PostgreSQL | `/auth/*`, `/customers/me` | FR01–FR04, FR32–FR33 |
+| BC02 Driver & Vehicle | `driver-service` | Driver, Vehicle | `driver_db` | PostgreSQL | `/drivers/me*` | FR05–FR07 |
+| BC03 Booking | `booking-service` | BookingRequest | `booking_db` | PostgreSQL | `POST /trips` | FR08 |
+| BC04 Dispatch | `dispatch-service` | DriverAssignment | `dispatch_db` | PostgreSQL | `/internal/dispatch/assign` | FR09–FR12 |
+| BC05 Trip | `trip-service` | Trip | `trip_db` | PostgreSQL | `GET/PUT /trips/*`, `/driver/trips/*` | FR13–FR17 |
+| BC06 Payment | `payment-service` | Payment | `payment_db` | PostgreSQL | `/trips/{tripId}/payment` | FR18–FR21 |
+| BC07 Rating | `rating-service` | Rating | `rating_db` | PostgreSQL | `/trips/{tripId}/rating` | FR22–FR23 |
+| BC08 Operations & Reporting | `operations-service` | OperationAction, Report Read Model | `operations_db` | PostgreSQL | `/staff/*`, `/reports/*` | FR24–FR31 |
+
+---
+
+# 7. ĐIỂM KHÁC BIỆT SO VỚI CẤU TRÚC API/ERD HIỆN TẠI
+
+1. **`04_trip.yaml` hiện đang gom nhiều nghiệp vụ.**  
+   SRS phân biệt rõ đặt xe, tìm/gán tài xế và vòng đời chuyến, nên kiến trúc DDD mới tách thành `booking-service`, `dispatch-service`, `trip-service`. Public endpoint được giữ để giảm thay đổi phía client.
+
+2. **`07_staff.yaml` là cách nhóm API theo actor, không phải bằng chứng rằng STAFF sở hữu tất cả dữ liệu.**  
+   Trong kiến trúc mới, `operations-service` gọi Account/Driver/Trip/Payment Service qua API.
+
+3. **`08_reports.yaml` chỉ có hai báo cáo cơ bản.**  
+   Không cần tạo hạ tầng phân tích phức tạp. `operations-service` tổng hợp số chuyến từ Trip Service và doanh thu từ Payment Service.
+
+4. **Không tạo `Notification Service`.**  
+   FR12 được xử lý trong Dispatch Context vì thông báo chỉ là kết quả khi không có tài xế; SMS/push thực tế nằm ngoài phạm vi SRS.
+
+5. **Không dùng Foreign Key xuyên database.**  
+   Mọi tham chiếu giữa service đều dùng External Reference ID + REST API.
 
 ---
 
