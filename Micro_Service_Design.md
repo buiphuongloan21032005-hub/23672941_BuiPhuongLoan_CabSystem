@@ -1,8 +1,4 @@
 # DDD BOUNDED CONTEXT & MICROSERVICE DESIGN – CAB SYSTEM
-> Repository: `buiphuongloan21032005-hub/23672941_BuiPhuongLoan_CabSystem`  
-> Nhánh đối chiếu: `main`  
-> Tài liệu nguồn chính: `srs.md`, `API_document/01_authentication.yaml` đến `API_document/08_reports.yaml`  
-> Nguyên tắc ưu tiên khi có khác biệt: **SRS mới nhất → Business Process/Business Rules → Use Case/RTM → API_document → ERD hiện tại**.
 
 ## 0. Cơ sở thiết kế và các quyết định kiến trúc
 
